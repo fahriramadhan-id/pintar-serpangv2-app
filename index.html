@@ -1,0 +1,2038 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PINTAR Serpang 2.0 &mdash; Perjalanan Tim Ahli Gizi Muda Kemaduraan</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Open+Sans:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #1a1410;
+            --bg-card: #2a2218;
+            --bg-card-hover: #362c20;
+            --accent-gold: #d4a843;
+            --accent-warm: #c75b39;
+            --accent-green: #5a8f5c;
+            --accent-blue: #4a90e2;
+            --text-light: #f5f0e8;
+            --text-muted: #b8a88a;
+            --shadow: 0 8px 32px rgba(0,0,0,0.4);
+            --border-light: rgba(212,168,67,0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Open Sans', sans-serif; }
+        body { background: var(--bg-dark); color: var(--text-light); line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+        h1, h2, h3, .serif { font-family: 'Lora', serif; }
+
+        /* Navigation / Header */
+        header { padding: 15px 20px; background: rgba(26,20,16,0.9); border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(5px); }
+        .header-title { font-family: 'Lora', serif; color: var(--accent-gold); font-size: 1.2rem; font-weight: 700; cursor: pointer; }
+        .progress-container { flex: 1; margin: 0 20px; max-width: 300px; display: none; }
+        .progress-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-gold), var(--accent-warm)); transition: width 0.4s ease; }
+        .user-info-badge { font-size: 0.8rem; background: rgba(212,168,67,0.1); border: 1px solid var(--accent-gold); padding: 4px 10px; border-radius: 20px; color: var(--accent-gold); display: none; }
+
+        /* Views */
+        .view { display: none; opacity: 0; transition: opacity 0.4s ease; padding-bottom: 80px; }
+        .view.active { display: block; opacity: 1; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Typography & Layout */
+        .container { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+        .text-center { text-align: center; }
+        .title { color: var(--accent-gold); margin-bottom: 15px; font-size: 2rem; text-align: center; }
+        .subtitle { color: var(--text-muted); text-align: center; margin-bottom: 30px; font-size: 1.1rem; }
+        
+        /* Buttons */
+        .btn { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, var(--accent-gold), #b38520); color: #1a1410; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: center; font-size: 1rem; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(212,168,67,0.4); }
+        .btn:disabled { background: #555; color: #888; cursor: not-allowed; box-shadow: none; transform: none; }
+        .btn-outline { background: transparent; border: 2px solid var(--accent-gold); color: var(--accent-gold); }
+        .btn-outline:hover { background: rgba(212,168,67,0.1); }
+        .btn-green { background: linear-gradient(135deg, var(--accent-green), #3e6b40); color: white; }
+        
+        .action-bar { display: flex; justify-content: center; gap: 15px; margin-top: 40px; flex-wrap: wrap; }
+
+        /* Forms & Inputs */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; color: var(--accent-gold); font-weight: 600; }
+        .form-input, .form-select { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; font-size: 1rem; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--accent-gold); }
+        textarea.form-input { resize: vertical; min-height: 80px; }
+
+        /* Cards & Grids */
+        .card { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        
+        /* Eksplorasi (Map) */
+        .map-container { position: relative; max-width: 100%; border-radius: 20px; margin: 0 auto; text-align: center; }
+        .map-container img { max-width: 100%; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        .hotspot { position: absolute; cursor: pointer; z-index: 10; transform: translate(-50%, -50%); }
+        .pin { width: 28px; height: 28px; background: linear-gradient(135deg, #d4a843, #b38520); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1a1410; font-weight: 800; font-size: 0.85rem; border: 2px solid #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.5); position: relative; transition: all 0.2s ease; z-index: 2; }
+        .pin.visited { background: linear-gradient(135deg, var(--accent-green), #3e6b40); }
+        .pin::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 1.5px solid rgba(212,168,67,0.5); animation: ringPulse 2.5s infinite; pointer-events: none; z-index: 1; }
+        .pin.visited::after { border-color: rgba(90,143,92,0.5); }
+        @keyframes ringPulse { 0%,100%{transform:scale(1);opacity:0.6} 50%{transform:scale(1.4);opacity:0} }
+        
+        .tracker-badge { display: inline-block; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 20px; color: var(--accent-gold); margin-bottom: 20px; border: 1px solid var(--accent-gold); font-weight: 600; }
+
+        /* Drag & Drop */
+        .dnd-container { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media(min-width: 768px) { .dnd-container { grid-template-columns: 1fr 2fr; } }
+        .source-area { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2); min-height: 200px; display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; }
+        .target-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
+        .target-box { background: var(--bg-card); border: 2px dashed rgba(212,168,67,0.3); border-radius: 12px; padding: 15px 10px; text-align: center; min-height: 120px; display: flex; flex-direction: column; align-items: center; transition: all 0.2s; }
+        .target-box.drag-over { border-color: var(--accent-gold); background: rgba(212,168,67,0.1); transform: scale(1.02); }
+        .target-title { font-weight: 700; color: var(--accent-gold); margin-bottom: 10px; font-size: 0.9rem; pointer-events: none; border-bottom: 1px solid rgba(212,168,67,0.2); padding-bottom: 5px; width: 100%; }
+        
+        .draggable-item { background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; cursor: grab; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; user-select: none; transition: transform 0.2s; }
+        .draggable-item:active { cursor: grabbing; transform: scale(0.95); }
+        .draggable-item.correct { border-color: var(--accent-green); background: rgba(90,143,92,0.2); }
+        .draggable-item.wrong { border-color: var(--accent-warm); background: rgba(199,91,57,0.2); animation: shake 0.4s; }
+        @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
+        .draggable-item.selected { box-shadow: 0 0 0 2px var(--accent-blue); transform: scale(1.05); }
+
+        /* Quiz / Test Styles */
+        .quiz-option { display: block; width: 100%; text-align: left; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; color: var(--text-light); font-size: 1rem; }
+        .quiz-option:hover { background: var(--bg-card-hover); border-color: var(--accent-gold); }
+        .quiz-option.selected { background: rgba(212,168,67,0.15); border-color: var(--accent-gold); }
+        
+        .test-question-card { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 25px; }
+        .test-q-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 15px; }
+        
+        .score-box { background: rgba(212,168,67,0.1); border: 2px solid var(--accent-gold); border-radius: 15px; padding: 25px; text-align: center; margin-bottom: 20px; }
+        .score-number { font-size: 4rem; font-family: 'Lora', serif; font-weight: 700; color: var(--accent-gold); line-height: 1; }
+        .tp-bar-container { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+        .tp-label { width: 40px; font-weight: bold; color: var(--accent-gold); }
+        .tp-track { flex: 1; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; }
+        .tp-fill { height: 100%; transition: width 1s ease; }
+        .tp-score { width: 50px; text-align: right; font-size: 0.9rem; }
+
+        /* Remedial Styles */
+        .remedial-section { background: rgba(199,91,57,0.1); border: 1px solid var(--accent-warm); border-radius: 12px; padding: 20px; margin-bottom: 20px; display: none; }
+        .remedial-section.active { display: block; }
+        
+        /* Passport Styles */
+        .passport-card { background: #fdfbf7; color: #2a2218; border-radius: 15px; padding: 30px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .passport-header { border-bottom: 3px double #d4a843; padding-bottom: 15px; margin-bottom: 20px; text-align: center; }
+        .passport-title { font-family: 'Lora', serif; font-size: 2rem; color: #8b6b22; text-transform: uppercase; letter-spacing: 2px; }
+        .passport-stamp { position: absolute; top: 20px; right: 20px; width: 80px; height: 80px; border: 4px solid #c75b39; border-radius: 50%; color: #c75b39; font-weight: bold; display: flex; align-items: center; justify-content: center; text-align: center; transform: rotate(15deg); opacity: 0.8; font-size: 0.9rem; }
+        .passport-section { margin-bottom: 20px; }
+        .passport-label { font-size: 0.85rem; color: #666; text-transform: uppercase; font-weight: bold; }
+        .passport-value { font-size: 1.1rem; font-weight: 600; color: #1a1410; border-bottom: 1px dashed #ccc; padding-bottom: 5px; margin-bottom: 10px; }
+        
+        /* Teacher Mode */
+        .teacher-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+        .teacher-table th, .teacher-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .teacher-table th { background: rgba(212,168,67,0.1); color: var(--accent-gold); font-weight: 600; }
+        .teacher-table tr:hover { background: rgba(255,255,255,0.05); }
+
+        /* Bar Charts / Analyzer */
+        .chart-row { margin-bottom: 15px; }
+        .chart-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; font-weight: 600; }
+        .chart-bar-bg { width: 100%; height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; }
+        .chart-bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease, background-color 0.5s ease; }
+        .analyzer-controls { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+        
+        /* Modals (Feedback / Global) */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; padding: 20px; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal { background: var(--bg-dark); width: 100%; max-width: 550px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,168,67,0.3); transform: translateY(20px) scale(0.95); opacity: 0; transition: all 0.3s; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal.success { box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 0 2px var(--accent-green); }
+        .modal.error { box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 0 2px var(--accent-warm); animation: shake 0.4s; }
+        .modal-overlay.active .modal { transform: translateY(0) scale(1); opacity: 1; }
+        .modal-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 15px; position: relative; }
+        .modal-title { font-family: 'Lora', serif; font-size: 1.4rem; color: var(--accent-gold); flex: 1; }
+        .modal-close { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+        .modal-body { padding: 20px; overflow-y: auto; }
+        
+        .feedback-icon { font-size: 4rem; text-align: center; margin-bottom: 10px; }
+        @keyframes popIcon { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
+        .modal-overlay.active .feedback-icon { animation: popIcon 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .feedback-message { text-align: center; margin-bottom: 20px; font-size: 1.1rem; }
+        
+        /* TTS & BGM */
+        .bgm-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: rgba(26,20,16,0.9); border: 1px solid rgba(212,168,67,0.4); color: var(--accent-gold); font-size: 1.2rem; cursor: pointer; z-index: 90; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .tts-bar { display: flex; align-items: center; gap: 10px; background: rgba(212,168,67,0.1); padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid rgba(212,168,67,0.2); }
+        
+        /* Custom Emojis / Tor-ator */
+        .emoji-selector { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .emoji-btn { font-size: 2rem; background: none; border: 2px solid transparent; border-radius: 50%; cursor: pointer; transition: transform 0.2s; padding: 5px; opacity: 0.5; }
+        .emoji-btn.selected { border-color: var(--accent-gold); opacity: 1; transform: scale(1.2); background: rgba(212,168,67,0.1); }
+        
+        /* Matching Grid */
+        .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .match-item { background: var(--bg-card); padding: 15px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; text-align: center; cursor: pointer; }
+        .match-item.selected { border-color: var(--accent-blue); background: rgba(74,144,226,0.1); }
+        .match-item.matched { opacity: 0.5; pointer-events: none; border-color: var(--accent-green); }
+        
+        .alert { padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; }
+        .alert-info { background: rgba(74,144,226,0.1); border: 1px solid rgba(74,144,226,0.3); color: #8ab6e6; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-title" ondblclick="app.navigate('teacher')">PINTAR Serpang</div>
+    <div class="progress-container" id="progressBarContainer">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+    <div class="user-info-badge" id="userInfoBadge">Kelompok</div>
+</header>
+
+<audio id="bgMusic" src="backsound.mp3" loop></audio>
+<button class="bgm-btn" id="bgmBtn" onclick="toggleBGM()">&#x1F507;</button>
+
+<!-- VIEW: BERANDA -->
+<div id="view-beranda" class="view active">
+    <div class="container text-center" style="margin-top: 10vh;">
+        <h1 class="title" style="font-size: 2.8rem;">PINTAR Serpang 2.0</h1>
+        <p class="subtitle" style="color: var(--accent-gold); font-size: 1.3rem;">Perjalanan Tim Ahli Gizi Muda Kemaduraan</p>
+        <p style="margin-bottom: 40px; font-style: italic;">"Kenali Gizinya, Cintai Budayanya"</p>
+        <button class="btn" onclick="app.navigate('identitas')" style="font-size: 1.2rem; padding: 15px 40px;">Mulai Petualangan &#x1F680;</button>
+        
+        <div style="margin-top: 50px; font-size: 0.85rem; color: #666;">
+            Disusun oleh Kelompok PPL UPTD SMPN 1 Burneh<br>
+            Untuk Mata Pelajaran IPA Kelas VIII (Fase D)
+        </div>
+        
+        <div style="margin-top: 40px;">
+            <button onclick="app.navigate('teacher')" style="background:none; border:1px solid rgba(212,168,67,0.3); color:#888; padding:8px 15px; border-radius:20px; font-size:0.8rem; cursor:pointer; transition:0.3s;" onmouseover="this.style.color='var(--accent-gold)'; this.style.borderColor='var(--accent-gold)';" onmouseout="this.style.color='#888'; this.style.borderColor='rgba(212,168,67,0.3)';">&#x1F512; Akses Guru</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: IDENTITAS -->
+<div id="view-identitas" class="view">
+    <div class="container">
+        <h2 class="title">Bentuk Tim Ahli Gizi</h2>
+        <p class="subtitle">Sesuai nilai <em>Kompolan</em>, selesaikan misi ini secara berkelompok.</p>
+        
+        <div class="card">
+            <div class="form-group">
+                <label class="form-label">Nama Kelompok</label>
+                <input type="text" id="inputKelompok" class="form-input" placeholder="Contoh: Kelompok Song-osong">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kelas</label>
+                <input type="text" id="inputKelas" class="form-input" placeholder="Contoh: VIII A">
+            </div>
+            <h3 class="form-label" style="margin-top:30px;">Bagi Peran Anggota</h3>
+            <div class="alert alert-info">Pilih peran agar kolaborasi berjalan lancar.</div>
+            <div class="form-group">
+                <label class="form-label">Koordinator (Pemimpin)</label>
+                <input type="text" id="inputPeran1" class="form-input" placeholder="Nama Anggota">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Pencatat (Notulen)</label>
+                <input type="text" id="inputPeran2" class="form-input" placeholder="Nama Anggota">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Jurubicara (Presenter)</label>
+                <input type="text" id="inputPeran3" class="form-input" placeholder="Nama Anggota">
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn-outline" onclick="app.navigate('beranda')">Kembali</button>
+            <button class="btn" onclick="saveIdentitas()">Lanjut Pangenalan &#x25B6;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: PANGENALAN -->
+<div id="view-pangenalan" class="view">
+    <div class="container">
+        <h2 class="title">Pangenalan: Nasi Serpang</h2>
+        <p class="subtitle">Mengenal Warisan Kuliner Bangkalan</p>
+        
+        <div class="card">
+            <div class="tts-bar">
+                <button class="btn btn-outline" style="padding: 5px 10px;" onclick="speakText('Nasi Serpang adalah makanan khas dari Bangkalan, Madura. Nasi ini unik karena tidak memiliki sayur, melainkan kaya akan berbagai lauk pauk dari darat dan laut. Sebagai ahli gizi muda, tugas kalian adalah meneliti komposisi gizinya, menemukan fungsinya bagi tubuh, dan mencari tahu apakah menu ini sudah seimbang atau perlu disempurnakan. Sebelum memulai, mari kita cek pemahaman awalmu melalui Pre-Test!')">&#x1F50A; Dengar</button>
+                <span style="font-size: 0.9rem; color: #aaa;">Dengarkan narasi</span>
+            </div>
+            <p>Nasi Serpang adalah makanan khas dari Bangkalan, Madura. Nasi ini unik karena tidak memiliki sayur, melainkan kaya akan berbagai lauk pauk dari darat dan laut.</p>
+            <br>
+            <p>Sebagai ahli gizi muda, tugas kalian adalah meneliti komposisi gizinya, menemukan fungsinya bagi tubuh, dan mencari tahu apakah menu ini sudah seimbang atau perlu disempurnakan.</p>
+            <br>
+            <div class="alert alert-info">
+                <strong>Sebelum memulai eksplorasi</strong>, mari kita cek pemahaman awal kalian tentang materi zat gizi melalui kuis singkat!
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn" onclick="app.navigate('pretest')">Mulai Pre-Test &#x270D;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: PRE-TEST -->
+<div id="view-pretest" class="view">
+    <div class="container">
+        <h2 class="title">Pre-Test: Titik Awalmu</h2>
+        <p class="subtitle">Jawab 12 pertanyaan ini dengan jujur. Tidak apa-apa jika belum tahu semua, kita akan mempelajarinya nanti!</p>
+        
+        <div id="pretest-container">
+            <!-- Questions generated by JS -->
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn" onclick="submitTest('pre')">Kumpulkan Pre-Test &#x2714;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: PRE-TEST HASIL -->
+<div id="view-pretest-hasil" class="view">
+    <div class="container">
+        <h2 class="title">Hasil Pre-Test</h2>
+        <p class="subtitle">Ini adalah titik awal pemahamanmu.</p>
+        
+        <div class="score-box">
+            <div class="score-number" id="pre-score-total">0/12</div>
+            <div style="color:var(--text-muted); margin-top:5px;">Jawaban Benar</div>
+        </div>
+        
+        <div class="card">
+            <h3 class="serif" style="color:var(--accent-gold); margin-bottom:15px; text-align:center;">Pemetaan Kemampuan Awal</h3>
+            
+            <div class="tp-bar-container">
+                <div class="tp-label">TP1</div>
+                <div class="tp-track"><div class="tp-fill" id="pre-bar-tp1" style="background:var(--accent-blue); width:0%;"></div></div>
+                <div class="tp-score" id="pre-txt-tp1">0/4</div>
+            </div>
+            <div style="font-size:0.8rem; color:#aaa; margin-bottom:15px; margin-left:55px;">Identifikasi Komponen & Nutrien</div>
+            
+            <div class="tp-bar-container">
+                <div class="tp-label">TP2</div>
+                <div class="tp-track"><div class="tp-fill" id="pre-bar-tp2" style="background:var(--accent-green); width:0%;"></div></div>
+                <div class="tp-score" id="pre-txt-tp2">0/4</div>
+            </div>
+            <div style="font-size:0.8rem; color:#aaa; margin-bottom:15px; margin-left:55px;">Fungsi Nutrien bagi Tubuh</div>
+            
+            <div class="tp-bar-container">
+                <div class="tp-label">TP3</div>
+                <div class="tp-track"><div class="tp-fill" id="pre-bar-tp3" style="background:var(--accent-warm); width:0%;"></div></div>
+                <div class="tp-score" id="pre-txt-tp3">0/4</div>
+            </div>
+            <div style="font-size:0.8rem; color:#aaa; margin-bottom:15px; margin-left:55px;">Keseimbangan & Penyempurnaan Menu</div>
+        </div>
+        
+        <div class="alert alert-info text-center">
+            Tidak apa-apa apabila masih ada bagian yang belum kamu kuasai. Kita akan mempelajarinya melalui misi-misi berikutnya. Tetap semangat!
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn" onclick="app.navigate('eksplorasi')">Mulai Eksplorasi &#x1F50D;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: EKSPLORASI (MAP) -->
+<div id="view-eksplorasi" class="view">
+    <div class="container">
+        <h2 class="title">Eksplorasi Nasi Serpang</h2>
+        <p class="subtitle">Klik 9 titik (pin) pada gambar untuk menemukan komponen penyusunnya.</p>
+        
+        <div class="tracker-badge" id="discoveryTracker">Petunjuk Ditemukan: 0 / 9</div>
+        
+        <div class="map-container" id="mapContainer">
+            <!-- Map and Hotspots inserted by JS -->
+        </div>
+        
+        <div class="action-bar" id="eksplorasiAction" style="display:none;">
+            <button class="btn" onclick="app.navigate('misi1')">Tahap Eksplorasi Selesai! Lanjut Misi 1 &#x25B6;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: MISI 1 -->
+<div id="view-misi1" class="view">
+    <div class="container">
+        <h2 class="title">Misi 1: Identifikasi Bahan</h2>
+        <p class="subtitle">Berdasarkan eksplorasi tadi, manakah dari daftar berikut yang MERUPAKAN komponen Nasi Serpang?</p>
+        <div class="alert alert-info">Pilih tepat 9 komponen yang benar!</div>
+        
+        <div class="card" id="misi1Grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">
+            <!-- Generated by JS -->
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn-outline" onclick="app.navigate('eksplorasi')">Kembali</button>
+            <button class="btn btn-green" onclick="checkMisi1()">Periksa Jawaban &#x2714;</button>
+            <button class="btn" id="btnToMisi2" onclick="app.navigate('misi2')" style="display:none;">Lanjut Misi 2 &#x25B6;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: MISI 2 -->
+<div id="view-misi2" class="view">
+    <div class="container">
+        <h2 class="title">Misi 2: Pengetahuan Lokal</h2>
+        <p class="subtitle">Setiap komponen Nasi Serpang diolah dengan cara tradisional. Pasangkan lauk dengan teknik pengolahannya!</p>
+        <div class="alert alert-info">&#x1F4A1; <strong>Cara bermain:</strong> Klik nama komponen di sebelah kiri, lalu klik cara pengolahannya di sebelah kanan.</div>
+        
+        <div class="card">
+            <div class="match-grid" id="misi2Grid">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn-outline" onclick="app.navigate('misi1')">Kembali</button>
+            <button class="btn" id="btnToMisi3" onclick="app.navigate('misi3')" style="display:none;">Lanjut Misi 3 &#x25B6;</button>
+        </div>
+    </div>
+</div>
+<!-- VIEW: MISI 3 -->
+<div id="view-misi3" class="view">
+    <div class="container">
+        <h2 class="title">Misi 3: Klasifikasi Nutrien</h2>
+        <p class="subtitle">Kelompokkan ke-9 komponen Nasi Serpang berdasarkan kandungan dominannya.</p>
+        <div class="alert alert-info">Geser (Drag & Drop) atau Klik item di atas, lalu Klik kotak sasaran di bawah.</div>
+        
+        <div class="dnd-container">
+            <div class="source-area" id="misi3Source" ondragover="allowDrop(event)" ondrop="m3Drop(event, 'source')">
+                <!-- Draggable items generated by JS -->
+            </div>
+            <div class="target-grid">
+                <div class="target-box" id="t-kar" ondragover="allowDrop(event)" ondrop="m3Drop(event, 'kar')" onclick="m3ClickTarget('kar')"><div class="target-title">Karbohidrat</div></div>
+                <div class="target-box" id="t-pro" ondragover="allowDrop(event)" ondrop="m3Drop(event, 'pro')" onclick="m3ClickTarget('pro')"><div class="target-title">Protein</div></div>
+                <div class="target-box" id="t-lem" ondragover="allowDrop(event)" ondrop="m3Drop(event, 'lem')" onclick="m3ClickTarget('lem')"><div class="target-title">Lemak</div></div>
+                <div class="target-box" id="t-min" ondragover="allowDrop(event)" ondrop="m3Drop(event, 'min')" onclick="m3ClickTarget('min')"><div class="target-title">Mineral / Lainnya</div></div>
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn-outline" onclick="app.navigate('misi2')">Kembali</button>
+            <button class="btn btn-green" onclick="checkMisi3()">Periksa Jawaban &#x2714;</button>
+            <button class="btn" id="btnToMisi4" onclick="app.navigate('misi4')" style="display:none;">Lanjut Misi 4 &#x25B6;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: MISI 4 -->
+<div id="view-misi4" class="view">
+    <div class="container">
+        <h2 class="title">Misi 4: Fungsi Nutrien</h2>
+        <p class="subtitle">Apa fungsi dari masing-masing zat gizi yang telah kalian temukan? Klik pada nama zat gizi, lalu klik pada kotak fungsinya yang tepat untuk memasangkan!</p>
+        
+        <div class="card">
+            <div class="match-grid" id="misi4Table">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn-outline" onclick="app.navigate('misi3')">Kembali</button>
+            <button class="btn" id="btnToMisi5" onclick="app.navigate('misi5')" style="display:none;">Lanjut Misi 5 &#x25B6;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: MISI 5 -->
+<div id="view-misi5" class="view">
+    <div class="container">
+        <h2 class="title">Misi 5: Analisis Keseimbangan</h2>
+        <p class="subtitle">Mari kita lihat profil gizi kualitatif Nasi Serpang berdasarkan komponen yang ada.</p>
+        
+        <div class="card">
+            <h3 class="serif text-center" style="color:var(--accent-gold); margin-bottom: 20px;">Profil Nutrien Nasi Serpang</h3>
+            <div id="analyzerBars" style="margin-bottom: 30px;">
+                <!-- Generated by JS -->
+            </div>
+            
+            <div style="background:rgba(212,168,67,0.1); border:1px solid var(--accent-gold); padding:20px; border-radius:12px;">
+                <p style="margin-bottom:10px; font-weight:bold; color:var(--accent-gold);">&#x1F50D; Tugas Analisis Kritis:</p>
+                <p style="font-size:0.9rem; margin-bottom:15px; color:var(--text-light);">Berdasarkan grafik profil di atas, <strong>tandai (centang) semua zat gizi</strong> yang kondisinya berada pada status <strong>DEFISIT (warna merah / di bawah 30%)</strong>.</p>
+                <div id="misi5Checklist" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom: 20px; justify-content:center;">
+                    <!-- Injected by JS -->
+                </div>
+                <div style="text-align:center;">
+                    <button class="btn btn-green" onclick="verifyMisi5()">Verifikasi Analisis &#x2714;</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn-outline" onclick="app.navigate('misi4')">Kembali</button>
+            <button class="btn" id="btnToMisi6" onclick="app.navigate('misi6')" style="display:none;">Lanjut Misi 6 &#x25B6;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: MISI 6 -->
+<div id="view-misi6" class="view">
+    <div class="container">
+        <h2 class="title">Misi 6: Penyempurnaan Menu</h2>
+        <p class="subtitle">Nasi Serpang minim zat pengatur (Vitamin, Mineral, Serat, Air). Pilih 2 bahan pelengkap sehat untuk menjadikannya Menu yang Seimbang!</p>
+        
+        <div class="card">
+            <h3 class="form-label text-center">Pantry Pelengkap</h3>
+            <div id="misi6Pantry" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom: 20px;">
+                <!-- Generated by JS -->
+            </div>
+            <div class="alert alert-info text-center" id="m6Status">Pilih 2 bahan yang tepat.</div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn-outline" onclick="app.navigate('misi5')">Kembali</button>
+            <button class="btn" id="btnToMisi7" onclick="app.navigate('misi7')" style="display:none;">Lanjut Lombhung &#x25B6;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: MISI 7 (Lombhung) -->
+<div id="view-misi7" class="view">
+    <div class="container">
+        <h2 class="title">Lombhung (Diskusi Bersama)</h2>
+        <p class="subtitle">Rumuskan alasan pemilihan pelengkap kalian, lalu diskusikan dengan kelompok lain secara luring.</p>
+        
+        <div class="card">
+            <div class="form-group">
+                <label class="form-label">Menu Pelengkap Rekomendasi Kelompok:</label>
+                <input type="text" id="inputRekomendasi" class="form-input" placeholder="Contoh: Pisang dan Tumis Bayam" readonly>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Alasan Ilmiah Pemilihan:</label>
+                <textarea id="inputAlasan" class="form-input" placeholder="Tuliskan mengapa kalian memilih bahan tersebut berdasarkan analisis gizi kualitatif tadi..."></textarea>
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn-outline" onclick="app.navigate('misi6')">Kembali</button>
+            <button class="btn" onclick="app.navigate('misi8')">Lanjut Tor-ator &#x25B6;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: MISI 8 (Tor-ator) -->
+<div id="view-misi8" class="view">
+    <div class="container">
+        <h2 class="title">Tor-ator (Refleksi Akhir)</h2>
+        <p class="subtitle">Bagaimana perasaanmu setelah menyelesaikan penyelidikan hari ini?</p>
+        
+        <div class="card text-center">
+            <p style="margin-bottom: 15px;">Pilih emoji suasana hati kelompok:</p>
+            <div class="emoji-selector">
+                <button class="emoji-btn" onclick="selectEmoji(this, 'sangat-senang')">&#x1F601;</button>
+                <button class="emoji-btn" onclick="selectEmoji(this, 'senang')">&#x1F642;</button>
+                <button class="emoji-btn" onclick="selectEmoji(this, 'bingung')">&#x1F914;</button>
+                <button class="emoji-btn" onclick="selectEmoji(this, 'lelah')">&#x1F62B;</button>
+            </div>
+            
+            <div class="form-group" style="text-align: left; margin-top:20px;">
+                <label class="form-label">Hal paling menarik yang saya pelajari hari ini:</label>
+                <textarea id="inputRefleksi1" class="form-input" placeholder="Ceritakan singkat saja..."></textarea>
+            </div>
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">Hal yang masih belum saya pahami (jika ada):</label>
+                <textarea id="inputRefleksi2" class="form-input" placeholder="Ceritakan singkat saja..."></textarea>
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn-outline" onclick="app.navigate('misi7')">Kembali</button>
+            <button class="btn" onclick="finishTorator()">Menuju Post-Test &#x25B6;</button>
+        </div>
+    </div>
+</div>
+<!-- VIEW: POST-TEST -->
+<div id="view-posttest" class="view">
+    <div class="container">
+        <h2 class="title">Post-Test: Evaluasi Belajar</h2>
+        <p class="subtitle">Mari kita lihat sejauh mana pemahamanmu berkembang setelah melakukan misi-misi tadi!</p>
+        
+        <div id="posttest-container">
+            <!-- Questions generated by JS -->
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn" onclick="submitTest('post')">Kumpulkan Post-Test &#x2714;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: POST-TEST HASIL -->
+<div id="view-posttest-hasil" class="view">
+    <div class="container">
+        <h2 class="title">Perkembangan Belajarmu</h2>
+        <p class="subtitle">Bandingkan dengan hasil awalmu.</p>
+        
+        <div class="match-grid">
+            <div class="score-box" style="margin-bottom: 0;">
+                <div style="font-size: 1.2rem; margin-bottom: 10px;">PRE-TEST</div>
+                <div class="score-number" style="font-size: 3rem;" id="res-pre-score">0%</div>
+            </div>
+            <div class="score-box" style="margin-bottom: 0;">
+                <div style="font-size: 1.2rem; margin-bottom: 10px;">POST-TEST</div>
+                <div class="score-number" style="font-size: 3rem;" id="res-post-score">0%</div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info text-center" id="res-diff" style="margin-top: 20px; font-weight: bold;">
+            Skormu meningkat X poin persentase.
+        </div>
+        
+        <div class="card" style="margin-top: 30px;">
+            <h3 class="serif" style="color:var(--accent-gold); margin-bottom:15px; text-align:center;">Analisis per Tujuan Pembelajaran</h3>
+            
+            <div style="display:flex; justify-content:space-between; margin-bottom: 15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">
+                <strong>TP1: Identifikasi Nutrien</strong>
+                <span id="res-tp1-text">Pre: 0/4 | Post: 0/4</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom: 15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">
+                <strong>TP2: Fungsi Nutrien</strong>
+                <span id="res-tp2-text">Pre: 0/4 | Post: 0/4</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom: 15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">
+                <strong>TP3: Analisis Menu</strong>
+                <span id="res-tp3-text">Pre: 0/4 | Post: 0/4</span>
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn" onclick="checkRemedial()">Lihat Hasil Akhir &#x25B6;</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: REMEDIAL (Adaptif) -->
+<div id="view-remedial" class="view">
+    <div class="container">
+        <h2 class="title">Misi Penguatan (Abhantal Ombâ')</h2>
+        <p class="subtitle">Berdasarkan hasil analisis, ada beberapa bagian yang masih perlu kita perkuat bersama. Pantang menyerah!</p>
+        
+        <!-- TP1 Remedial -->
+        <div class="remedial-section" id="rem-tp1">
+            <h3 style="color:var(--accent-gold); margin-bottom:10px;">Penguatan TP1: Sumber Zat Gizi</h3>
+            <p style="margin-bottom: 15px; font-size:0.9rem;">Masih ingatkah kamu lauk mana yang tinggi protein?</p>
+            <p>Pilih lauk yang menyumbang PROTEIN tinggi:</p>
+            <div class="analyzer-controls" style="margin-top:10px;">
+                <button class="btn btn-outline" onclick="checkRem('tp1', false, 'Bukan. Nasi putih menyumbang karbohidrat.')">Nasi Putih</button>
+                <button class="btn btn-outline" onclick="checkRem('tp1', true, 'Tepat! Ikan tongkol adalah sumber protein hewani yang sangat baik.')">Ikan Tongkol</button>
+                <button class="btn btn-outline" onclick="checkRem('tp1', false, 'Bukan. Serundeng menyumbang lemak nabati karena terbuat dari kelapa.')">Serundeng</button>
+            </div>
+        </div>
+        
+        <!-- TP2 Remedial -->
+        <div class="remedial-section" id="rem-tp2">
+            <h3 style="color:var(--accent-gold); margin-bottom:10px;">Penguatan TP2: Fungsi Zat Gizi</h3>
+            <p style="margin-bottom: 15px; font-size:0.9rem;">Mari kita ingat kembali mengapa tubuh butuh makanan.</p>
+            <p>Apa fungsi utama dari PROTEIN?</p>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                <button class="btn btn-outline" onclick="checkRem('tp2', false, 'Kurang tepat. Bahan bakar utama adalah tugas karbohidrat.')">Sebagai bahan bakar utama (energi)</button>
+                <button class="btn btn-outline" onclick="checkRem('tp2', true, 'Benar! Protein bertugas membangun jaringan tubuh dan memperbaiki sel rusak.')">Sebagai zat pembangun dan perbaikan sel</button>
+                <button class="btn btn-outline" onclick="checkRem('tp2', false, 'Kurang tepat. Pengatur kekebalan tubuh adalah tugas vitamin/mineral.')">Sebagai pengatur kekebalan tubuh</button>
+            </div>
+        </div>
+        
+        <!-- TP3 Remedial -->
+        <div class="remedial-section" id="rem-tp3">
+            <h3 style="color:var(--accent-gold); margin-bottom:10px;">Penguatan TP3: Keseimbangan Menu</h3>
+            <p style="margin-bottom: 15px; font-size:0.9rem;">Gizi seimbang artinya semua fungsi zat gizi terpenuhi.</p>
+            <p>Mengapa Nasi Serpang perlu ditambah sayur dan buah?</p>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                <button class="btn btn-outline" onclick="checkRem('tp3', false, 'Bukan. Nasi Serpang sudah kaya akan karbohidrat dari nasi dan bihun.')">Agar karbohidratnya bertambah banyak</button>
+                <button class="btn btn-outline" onclick="checkRem('tp3', true, 'Tepat! Sayur dan buah memberikan vitamin dan mineral pengatur yang minim pada lauk aslinya.')">Untuk melengkapi fungsi pengatur (vitamin/mineral)</button>
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn" id="btn-finish-remedial" onclick="app.navigate('paspor')">Lanjut ke Paspor &#x25B6;</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* DIGITAL LEARNING PASSPORT STYLES */
+.dlp-wrapper {
+    background: #fdfbf7;
+    color: #2c241b;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+    font-family: 'Lora', serif;
+    border: 1px solid rgba(212,168,67,0.3);
+}
+.dlp-stamp {
+    position: absolute;
+    top: 40px;
+    right: 30px;
+    border: 3px solid #b34d4d;
+    color: #b34d4d;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transform: rotate(15deg);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+.dlp-stamp.show {
+    animation: stampIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s forwards;
+}
+@keyframes stampIn {
+    0% { transform: scale(1.5) rotate(15deg); opacity: 0; }
+    100% { transform: scale(1) rotate(15deg); opacity: 0.8; }
+}
+.dlp-header { text-align: center; border-bottom: 2px solid var(--accent-gold); padding-bottom: 15px; margin-bottom: 25px; }
+.dlp-title { font-size: 1.8rem; font-weight: 700; color: #2c241b; margin-bottom: 5px; }
+.dlp-subtitle { font-size: 0.9rem; color: #666; font-style: italic; }
+.dlp-section { margin-bottom: 30px; }
+.dlp-section-title { font-size: 1.1rem; font-weight: 700; color: var(--accent-gold); border-bottom: 1px dashed rgba(212,168,67,0.5); padding-bottom: 5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+.dlp-id-card { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; background: rgba(212,168,67,0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(212,168,67,0.3); }
+.dlp-id-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #666; }
+.dlp-id-val { font-size: 1.1rem; font-weight: 700; color: #2c241b; }
+.dlp-timeline { display: flex; justify-content: space-between; align-items: flex-start; position: relative; margin: 30px 0; overflow-x: auto; padding-bottom: 10px; }
+.dlp-timeline::before { content: ''; position: absolute; top: 15px; left: 0; right: 0; height: 2px; background: #e0d8c8; z-index: 1; }
+.dlp-step { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; opacity: 0; animation: fadeIn 0.4s ease forwards; }
+.dlp-step-icon { width: 32px; height: 32px; border-radius: 50%; background: #e0d8c8; color: #666; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; border: 2px solid #fdfbf7; transition: 0.3s; }
+.dlp-step.completed .dlp-step-icon { background: var(--accent-green); color: #fff; border-color: var(--accent-green); }
+.dlp-step-label { font-size: 0.7rem; text-align: center; font-weight: 600; color: #666; line-height: 1.2; }
+.dlp-step.completed .dlp-step-label { color: #2c241b; font-weight: 700; }
+@keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+.dlp-badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
+.dlp-badge { border: 1px solid #e0d8c8; border-radius: 8px; padding: 12px; text-align: center; background: #fff; opacity: 0.5; filter: grayscale(1); transition: 0.4s; }
+.dlp-badge.unlocked { opacity: 1; filter: grayscale(0); border-color: var(--accent-gold); box-shadow: 0 4px 10px rgba(212,168,67,0.15); }
+.dlp-badge-icon { font-size: 1.8rem; margin-bottom: 5px; }
+.dlp-badge-title { font-size: 0.75rem; font-weight: 700; color: #2c241b; line-height: 1.2; }
+.dlp-bar-bg { background: #e0d8c8; height: 16px; border-radius: 8px; overflow: hidden; margin-top: 5px; }
+.dlp-bar-fill { height: 100%; background: var(--accent-gold); transition: width 1s ease-out; }
+.dlp-bar-label { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; }
+.dlp-menu-card { border: 1px solid #e0d8c8; border-radius: 8px; padding: 15px; background: #fff; }
+.dlp-menu-header { text-align: center; border-bottom: 1px solid #e0d8c8; padding-bottom: 10px; margin-bottom: 10px; font-weight: 700; font-size: 0.9rem;}
+.dlp-torator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.dlp-ref-card { background: #fff; border: 1px dashed #b8a88a; padding: 15px; border-radius: 8px; }
+.dlp-ref-card h4 { font-size: 0.8rem; color: #666; margin-bottom: 5px; text-transform: uppercase; }
+.dlp-ref-card p { font-size: 0.9rem; font-style: italic; color: #2c241b; line-height: 1.5; }
+@media print {
+    body * { visibility: hidden; }
+    #view-paspor, #view-paspor * { visibility: visible; }
+    #view-paspor { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+    .dlp-wrapper { border: none; box-shadow: none; padding: 10px; }
+    .action-bar, .instruction-bar { display: none !important; }
+}
+@media (max-width: 600px) {
+    .dlp-torator-grid { grid-template-columns: 1fr; }
+    .dlp-timeline { overflow-x: scroll; }
+    .dlp-badge-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+
+<!-- VIEW: PASPOR (DIGITAL LEARNING PASSPORT) -->
+<div id="view-paspor" class="view">
+    <div class="container" style="max-width: 900px;">
+        <div class="dlp-wrapper" id="passport-capture">
+            <div class="dlp-stamp" id="dlp-stamp">&#x2713; MISSION COMPLETE</div>
+            
+            <div class="dlp-header">
+                <div class="dlp-title">PASPOR AHLI GIZI MUDA</div>
+                <div class="dlp-subtitle">PINTAR Serpang 2.0 &mdash; Perjalanan Tim Ahli Gizi Muda Kemaduraan</div>
+            </div>
+            
+            <!-- SECTION: IDENTITY -->
+            <div class="dlp-section">
+                <div class="dlp-id-card">
+                    <div>
+                        <div class="dlp-id-label">&#x1F465; KELOMPOK</div>
+                        <div class="dlp-id-val" id="dlp-kelompok">-</div>
+                    </div>
+                    <div>
+                        <div class="dlp-id-label">&#x1F3EB; KELAS</div>
+                        <div class="dlp-id-val" id="dlp-kelas">-</div>
+                    </div>
+                    <div>
+                        <div class="dlp-id-label">&#x1FAAA; AHLI GIZI MUDA ID</div>
+                        <div class="dlp-id-val" id="dlp-id">-</div>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <div class="dlp-id-label">&#x1F9D1;&#x200D;&#x1F3EB; ANGGOTA TIM (PERAN)</div>
+                        <div class="dlp-id-val" id="dlp-anggota" style="font-size: 0.95rem; font-weight: normal; margin-top: 5px; line-height: 1.5;">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: LEARNING JOURNEY -->
+            <div class="dlp-section">
+                <div class="dlp-section-title">&#x1F5FA;&#xFE0F; PERJALANAN BELAJAR</div>
+                <div class="dlp-timeline" id="dlp-timeline-container">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+            
+            <!-- SECTION: ACHIEVEMENTS / BADGES -->
+            <div class="dlp-section">
+                <div class="dlp-section-title">&#x1F3C5; CAPAIAN</div>
+                <div class="dlp-badge-grid">
+                    <div class="dlp-badge" id="badge-1"><div class="dlp-badge-icon">&#x1F50E;</div><div class="dlp-badge-title">PENJELAJAH SERPANG</div></div>
+                    <div class="dlp-badge" id="badge-2"><div class="dlp-badge-icon">&#x1F9EA;</div><div class="dlp-badge-title">DETEKTIF NUTRIEN</div></div>
+                    <div class="dlp-badge" id="badge-3"><div class="dlp-badge-icon">&#x1F517;</div><div class="dlp-badge-title">PENGHUBUNG SAINS</div></div>
+                    <div class="dlp-badge" id="badge-4"><div class="dlp-badge-icon">&#x2696;&#xFE0F;</div><div class="dlp-badge-title">ANALIS MENU</div></div>
+                    <div class="dlp-badge" id="badge-5"><div class="dlp-badge-icon">&#x1F371;</div><div class="dlp-badge-title">PERANCANG MENU</div></div>
+                    <div class="dlp-badge" id="badge-6"><div class="dlp-badge-icon">&#x1F91D;</div><div class="dlp-badge-title">SONG-OSONG</div></div>
+                </div>
+            </div>
+
+            <div class="dlp-torator-grid">
+                <!-- SECTION: LEARNING SNAPSHOT -->
+                <div class="dlp-section">
+                    <div class="dlp-section-title">&#x1F9E0; PERKEMBANGAN PEMAHAMAN</div>
+                    <div style="background: rgba(255,255,255,0.7); padding: 15px; border-radius: 8px; border: 1px dashed #b8a88a;">
+                        <div class="dlp-bar-label"><span>Pre-Test</span><span id="dlp-pre-val">0%</span></div>
+                        <div class="dlp-bar-bg"><div class="dlp-bar-fill" id="dlp-pre-bar" style="width:0%; background:#b8a88a;"></div></div>
+                        <div style="text-align:center; font-size:0.8rem; margin:10px 0; color:var(--accent-green); font-weight:bold;" id="dlp-diff">+0 Poin Pemahaman</div>
+                        <div class="dlp-bar-label"><span>Post-Test</span><span id="dlp-post-val">0%</span></div>
+                        <div class="dlp-bar-bg"><div class="dlp-bar-fill" id="dlp-post-bar" style="width:0%;"></div></div>
+                    </div>
+                </div>
+
+                <!-- SECTION: COMPETENCY MAP -->
+                <div class="dlp-section">
+                    <div class="dlp-section-title">&#x1F3AF; PROFIL KOMPETENSI (POST-TEST)</div>
+                    <div style="background: rgba(255,255,255,0.7); padding: 15px; border-radius: 8px; border: 1px dashed #b8a88a;">
+                        <div class="dlp-bar-label" style="font-size:0.75rem;"><span>&#x1F9EA; Identifikasi Nutrien (TP1)</span><span id="dlp-tp1-val">0%</span></div>
+                        <div class="dlp-bar-bg"><div class="dlp-bar-fill" id="dlp-tp1-bar" style="width:0%;"></div></div>
+                        <div class="dlp-bar-label" style="font-size:0.75rem; margin-top:8px;"><span>&#x1F9E0; Fungsi Nutrien (TP2)</span><span id="dlp-tp2-val">0%</span></div>
+                        <div class="dlp-bar-bg"><div class="dlp-bar-fill" id="dlp-tp2-bar" style="width:0%;"></div></div>
+                        <div class="dlp-bar-label" style="font-size:0.75rem; margin-top:8px;"><span>&#x2696;&#xFE0F; Analisis Keseimbangan (TP3)</span><span id="dlp-tp3-val">0%</span></div>
+                        <div class="dlp-bar-bg"><div class="dlp-bar-fill" id="dlp-tp3-bar" style="width:0%;"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: MENU CREATION -->
+            <div class="dlp-section">
+                <div class="dlp-section-title">&#x1F371; MENU KARYA TIM</div>
+                <div class="dlp-menu-card">
+                    <div class="dlp-menu-header">&#x1F371; MENU MBG KEMADURAAN</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:20px; font-size:0.9rem;">
+                        <div style="flex:1; min-width:150px;">
+                            <ul style="list-style:none; padding:0; margin:0; color:#2c241b;">
+                                <li>&#x2714; Nasi Putih</li><li>&#x2714; Pepes Ikan</li><li>&#x2714; Telur Asin</li>
+                                <li>&#x2714; Empal Daging</li><li>&#x2714; Sambal Kerang</li><li>&#x2714; Rempeyek</li>
+                            </ul>
+                        </div>
+                        <div style="flex:1; min-width:150px;">
+                            <strong>Tambahan Kami:</strong>
+                            <div id="dlp-menu-rekomendasi" style="color:var(--accent-green); font-weight:bold; margin-top:5px; line-height:1.4;">-</div>
+                            <div style="margin-top:10px; font-size:0.8rem; color:#666;" id="dlp-menu-alasan">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: REFLECTION -->
+            <div class="dlp-section" style="margin-bottom:0;">
+                <div class="dlp-section-title">&#x1F4AD; TOR-ATOR (REFLEKSI)</div>
+                <div class="dlp-torator-grid">
+                    <div class="dlp-ref-card">
+                        <h4>&#x1F4DA; Yang Saya Pelajari</h4>
+                        <p id="dlp-ref1">-</p>
+                    </div>
+                    <div class="dlp-ref-card">
+                        <h4>&#x1F4A1; Yang Membuat Saya Berpikir</h4>
+                        <p id="dlp-ref2">-</p>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- /dlp-wrapper -->
+        
+        <div class="action-bar" style="margin-top: 40px;">
+            <button class="btn btn-outline" onclick="printPaspor()">Simpan PDF / Cetak &#x1F5A8;&#xFE0F;</button>
+            <button class="btn btn-outline" onclick="exportToWA()">Kirim ke WhatsApp &#x1F4F1;</button>
+            <button class="btn btn-green" onclick="submitToGoogleSheets()">Kirim ke Guru (Server) &#x23F3;</button>
+        </div>
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn btn-outline" onclick="resetData()" style="border-color: #555; color: #888; font-size: 0.8rem; padding: 8px 15px;">Mulai Ulang (Reset)</button>
+        </div>
+    </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-overlay" id="passModal" style="z-index: 2000;">
+    <div class="modal" style="display: block; max-width: 350px;">
+        <div class="modal-header" style="justify-content: center;">
+            <h3 class="modal-title" style="color:var(--accent-gold); text-align:center; flex:none;">Autentikasi Guru</h3>
+            <button class="modal-close" onclick="closePassModal()" style="position:absolute; right:20px;">&#x2715;</button>
+        </div>
+        <div class="modal-body" style="padding: 30px 20px;">
+            <div class="feedback-icon" id="passModalIcon" style="font-size:3rem; margin-bottom:15px; text-shadow: 0 0 15px rgba(212,168,67,0.3);">&#x1F512;</div>
+            <div class="feedback-message" style="margin-bottom:20px; font-size:0.95rem;">Masukkan 4-digit PIN Rahasia:</div>
+            
+            <input type="password" id="inputTeacherPin" class="form-input" style="display:block; text-align:center; font-size:2rem; letter-spacing:12px; text-indent:12px; font-family:monospace; width:160px; padding:10px; margin: 0 auto; background:rgba(0,0,0,0.4); border:2px solid var(--accent-gold); border-radius:12px; color:#fff; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);" maxlength="4" onkeypress="if(event.key==='Enter') verifyTeacherPin()">
+            
+            <div style="text-align: center; margin-top:25px;">
+                <button class="btn btn-green" onclick="verifyTeacherPin()" style="font-size:1rem; padding: 10px 30px; border-radius: 25px;">Buka Akses Guru</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: TEACHER MODE -->
+<div id="view-teacher" class="view">
+    <div class="container" style="max-width: 1100px;">
+        <div style="background:var(--bg-card); padding:40px; border-radius:20px; border:1px solid rgba(212,168,67,0.3); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+            <div style="text-align:center; margin-bottom:40px;">
+                <div style="font-size:3.5rem; margin-bottom:10px; text-shadow: 0 0 30px rgba(212,168,67,0.5);">&#x1F4DA;</div>
+                <h2 style="color:var(--accent-gold); margin-bottom:10px; font-size:2.2rem; letter-spacing:1px;">Dashboard Guru</h2>
+                <p style="color:var(--text-muted); font-size:1.05rem;" id="dashboardSubtitle">Pilih mode tampilan data (Lokal/Offline atau Server/Online).</p>
+            </div>
+            
+            <div style="display:flex; justify-content:center; gap:20px; margin-bottom:40px; border-bottom:1px dashed rgba(212,168,67,0.3); padding-bottom:40px; flex-wrap:wrap;">
+                <button class="btn btn-outline" style="border-radius:30px; padding:12px 30px; font-size:1rem;" onclick="initTeacherMode()">&#x1F4BE; Muat Data Lokal (Offline)</button>
+                <button class="btn btn-green" style="border-radius:30px; padding:12px 30px; font-size:1rem;" onclick="fetchOnlineData()" id="btnFetchOnline">&#x1F310; Tarik Data Server (Online)</button>
+            </div>
+            
+            <!-- STAT CARDS -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:40px;" id="teacherStats">
+                <div style="background:linear-gradient(135deg, rgba(212,168,67,0.1), rgba(0,0,0,0)); padding:25px; border-radius:15px; text-align:center; border:1px solid rgba(212,168,67,0.2);">
+                    <div style="font-size:0.9rem; color:#aaa; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Total Peserta</div>
+                    <div style="font-size:2.5rem; font-weight:bold; color:var(--accent-gold);" id="statCount">0</div>
+                </div>
+                <div style="background:linear-gradient(135deg, rgba(212,168,67,0.1), rgba(0,0,0,0)); padding:25px; border-radius:15px; text-align:center; border:1px solid rgba(212,168,67,0.2);">
+                    <div style="font-size:0.9rem; color:#aaa; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Rata-rata Pre-Test</div>
+                    <div style="font-size:2.5rem; font-weight:bold; color:var(--text-light);" id="statPre">0%</div>
+                </div>
+                <div style="background:linear-gradient(135deg, rgba(90,143,92,0.1), rgba(0,0,0,0)); padding:25px; border-radius:15px; text-align:center; border:1px solid rgba(90,143,92,0.3);">
+                    <div style="font-size:0.9rem; color:#aaa; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Rata-rata Post-Test</div>
+                    <div style="font-size:2.5rem; font-weight:bold; color:var(--accent-green);" id="statPost">0%</div>
+                </div>
+            </div>
+
+            <div style="overflow-x:auto; background:rgba(0,0,0,0.2); border-radius:15px; border: 1px solid rgba(255,255,255,0.05);">
+                <table class="styled-table" style="width:100%; border-collapse:collapse; min-width:900px; font-size:0.95rem;">
+                    <thead>
+                        <tr style="border-bottom:2px solid rgba(212,168,67,0.3); color:var(--accent-gold); background:rgba(212,168,67,0.05);">
+                            <th style="padding:15px; text-align:left;">Kelompok</th>
+                            <th style="padding:15px; text-align:left;">Anggota</th>
+                            <th style="padding:15px; text-align:left;">Kelas</th>
+                            <th style="padding:15px; text-align:left;">Pre</th>
+                            <th style="padding:15px; text-align:left;">Post</th>
+                            <th style="padding:15px; text-align:left;">TP1</th>
+                            <th style="padding:15px; text-align:left;">TP2</th>
+                            <th style="padding:15px; text-align:left;">TP3</th>
+                            <th style="padding:15px; text-align:left;">Remedial</th>
+                            <th style="padding:15px; text-align:left;">Sumber</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacherTableBody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top:40px; display:flex; gap:15px; justify-content:space-between; flex-wrap:wrap; align-items:center;">
+                <button class="btn btn-outline" onclick="closeTeacherMode()" style="border-radius:20px;">&#x2B05; Keluar Dashboard</button>
+                <div style="display:flex; gap:15px;">
+                    <button class="btn btn-green" onclick="exportCSV()" style="border-radius:20px;">Unduh CSV &#x1F4BE;</button>
+                    <button class="btn btn-primary" style="background:var(--accent-warm); border-radius:20px;" onclick="clearTeacherData()">&#x26A0;&#xFE0F; Hapus Data Lokal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GLOBAL MODAL -->
+<div class="modal-overlay" id="feedbackModal" style="z-index: 9999;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">Hasil Analisis</h3>
+            <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+        </div>
+        <div class="modal-body">
+            <div class="feedback-icon" id="modalIcon">&#x2705;</div>
+            <div class="feedback-message" id="modalMessage">Pesan feedback...</div>
+            <div style="text-align: center;">
+                <button class="btn" onclick="closeModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ================= DATA SOAL ASESMEN =================
+const preTestQs = [
+    { id: 'pre1', tp: 1, q: "Komponen utama Nasi Serpang yang menjadi sumber energi (karbohidrat) terbesar adalah?", opts: ["Nasi Putih", "Serundeng", "Telur Asin", "Sambal"], ans: 0 },
+    { id: 'pre2', tp: 1, q: "Manakah dari kelompok lauk berikut yang menyumbangkan protein paling tinggi?", opts: ["Nasi, Bihun, Peyek", "Ikan Tongkol, Empal, Telur", "Sayur, Buah, Air", "Kerang, Sambal, Serundeng"], ans: 1 },
+    { id: 'pre3', tp: 1, q: "Serundeng kelapa pada sajian Nasi Serpang banyak mengandung nutrien...", opts: ["Air", "Vitamin", "Karbohidrat", "Lemak"], ans: 3 },
+    { id: 'pre4', tp: 1, q: "Jika kamu makan Nasi, Soun, dan Peyek, maka kelompok nutrien yang dominan masuk ke tubuhmu adalah?", opts: ["Lemak", "Protein", "Karbohidrat", "Mineral"], ans: 2 },
+    
+    { id: 'pre5', tp: 2, q: "Nasi Serpang kaya akan karbohidrat. Fungsi utama karbohidrat bagi tubuh remaja adalah...", opts: ["Sebagai bahan bakar dan energi utama", "Membangun sel-sel baru", "Melarutkan zat gizi", "Menjaga suhu tubuh"], ans: 0 },
+    { id: 'pre6', tp: 2, q: "Tubuh membutuhkan protein setelah beraktivitas. Fungsi utama protein adalah...", opts: ["Cadangan makanan utama", "Mencegah dehidrasi", "Pertumbuhan dan perbaikan sel tubuh", "Sumber energi tercepat"], ans: 2 },
+    { id: 'pre7', tp: 2, q: "Lemak sering dianggap buruk, padahal fungsi penting lemak bagi tubuh adalah...", opts: ["Melancarkan pencernaan", "Bantalan pelindung organ & cadangan energi", "Membentuk tulang dan gigi", "Membawa oksigen ke darah"], ans: 1 },
+    { id: 'pre8', tp: 2, q: "Agar tubuh tidak mudah terserang penyakit, kita membutuhkan nutrien pengatur yaitu...", opts: ["Karbohidrat dan Protein", "Protein dan Air", "Karbohidrat dan Lemak", "Vitamin dan Mineral"], ans: 3 },
+    
+    { id: 'pre9', tp: 3, q: "Suatu kelompok menemukan bahwa Nasi Serpang didominasi lauk pauk (protein & lemak) dan nasi. Kesimpulan yang tepat adalah...", opts: ["Sangat kekurangan serat dan vitamin", "Kekurangan karbohidrat", "Kekurangan protein hewani", "Sudah sempurna tanpa tambahan"], ans: 0 },
+    { id: 'pre10', tp: 3, q: "Mengapa makanan tradisional yang lauknya sangat banyak belum tentu bisa disebut 'Gizi Seimbang'?", opts: ["Karena makanan tradisional cara masaknya kuno", "Karena bisa saja jenis nutriennya menumpuk di satu fungsi yang sama", "Karena gizinya hilang saat dimasak", "Karena porsinya terlalu besar"], ans: 1 },
+    { id: 'pre11', tp: 3, q: "Untuk menjadikan Nasi Serpang sebagai menu MBG yang seimbang, pelengkap yang paling logis ditambahkan adalah...", opts: ["Ayam goreng dan mie instan", "Sayur, buah segar, dan air putih", "Kerupuk udang dan es teh manis", "Sate telur puyuh dan lontong"], ans: 1 },
+    { id: 'pre12', tp: 3, q: "Jika sebuah menu hanya berisi Nasi, Soun, dan Peyek, dampak jangka panjang jika dimakan terus menerus adalah...", opts: ["Kelebihan energi tetapi rentan sakit karena kurang vitamin", "Tumbuh sangat tinggi karena kaya kalsium", "Kekurangan energi untuk belajar", "Sangat sehat karena mengenyangkan"], ans: 0 }
+];
+
+const postTestQs = [
+    { id: 'post1', tp: 1, q: "Saat meneliti Nasi Serpang, komponen pelengkap yang menyumbangkan karbohidrat selain nasi putih adalah...", opts: ["Empal dan Ikan", "Soun dan Peyek", "Telur dan Serundeng", "Sambal dan Kerang"], ans: 1 },
+    { id: 'post2', tp: 1, q: "Lauk Nasi Serpang yang berasal dari hasil laut dan kaya akan protein hewani adalah...", opts: ["Empal dan Serundeng", "Soun dan Peyek", "Telur dan Nasi", "Ikan Tongkol dan Kerang"], ans: 3 },
+    { id: 'post3', tp: 1, q: "Nutrien dominan yang dihasilkan dari proses sangrai kelapa (serundeng) dan penggorengan peyek adalah...", opts: ["Air", "Lemak", "Vitamin", "Protein"], ans: 1 },
+    { id: 'post4', tp: 1, q: "Jika menu MBG menyertakan sayur bayam dan buah, maka nutrien dominan apa yang sedang ditambahkan?", opts: ["Karbohidrat dan Lemak", "Protein dan Karbohidrat", "Vitamin dan Mineral", "Lemak dan Air"], ans: 2 },
+    
+    { id: 'post5', tp: 2, q: "Seorang siswa merasa lemas saat belajar. Nutrien apa yang paling cepat diubah menjadi energi untuk mengatasinya?", opts: ["Karbohidrat", "Mineral", "Air", "Vitamin"], ans: 0 },
+    { id: 'post6', tp: 2, q: "Untuk masa pertumbuhan remaja, zat gizi pembangun yang bertugas menyusun jaringan tubuh adalah...", opts: ["Protein", "Lemak", "Mineral", "Karbohidrat"], ans: 0 },
+    { id: 'post7', tp: 2, q: "Nutrien yang berfungsi menjaga suhu tubuh saat cuaca dingin dan melindungi organ dalam adalah...", opts: ["Protein", "Lemak", "Air", "Vitamin"], ans: 1 },
+    { id: 'post8', tp: 2, q: "Fungsi utama dari Vitamin dan Mineral dalam sistem pencernaan dan kekebalan tubuh adalah sebagai...", opts: ["Zat pembangun otot", "Sumber kalori tertinggi", "Zat pengatur metabolisme dan imunitas", "Pengganti sel darah merah"], ans: 2 },
+    
+    { id: 'post9', tp: 3, q: "Berdasarkan profil gizi kualitatifnya, Nasi Serpang asli memiliki grafik profil 'Tinggi' pada...", opts: ["Karbohidrat dan Protein", "Vitamin dan Air", "Mineral dan Lemak", "Serat dan Vitamin"], ans: 0 },
+    { id: 'post10', tp: 3, q: "Budi membawa bekal Nasi Serpang lengkap dengan 9 lauk aslinya. Menurut prinsip gizi seimbang, bekal Budi...", opts: ["Sudah sangat seimbang karena lauknya banyak", "Masih perlu disempurnakan dengan sayur/buah", "Tidak sehat sama sekali karena digoreng", "Harus dikurangi porsi nasinya hingga setengah"], ans: 1 },
+    { id: 'post11', tp: 3, q: "Kelompok menyarankan penambahan Tumis Kangkung pada Nasi Serpang. Alasan ilmiah yang paling tepat adalah...", opts: ["Untuk menambah rasa manis dan gurih", "Agar piring terlihat lebih penuh", "Untuk melengkapi unsur Vitamin dan Mineral yang minim", "Untuk meningkatkan kadar Karbohidrat"], ans: 2 },
+    { id: 'post12', tp: 3, q: "Menu yang seimbang tidak hanya melihat jumlah variasi lauknya, tetapi juga memastikan...", opts: ["Harganya harus mahal", "Semuanya harus direbus tanpa minyak", "Harus ada susu sapi setiap hari", "Keberadaan fungsi nutrien (energi, pembangun, pengatur) ada secara proporsional"], ans: 3 }
+];
+// ================= DATA & STATE =================
+const foodData = {
+    nasi: { id: 'nasi', name: "Nasi Putih", icon: "\u{1F35A}", nutrien: "Karbohidrat", fungsi: "energi", source: "serpang",
+        desc: "Beras lokal Madura. Sumber energi utama.", 
+        pengolahan: "Dikukus / Ditanak", pengolahanWrong: ["Dipepes", "Digoreng"] },
+    ikan: { id: 'ikan', name: "Pepes Ikan Tongkol", icon: "\u{1F41F}", nutrien: "Protein", fungsi: "sel", source: "serpang",
+        desc: "Kaya protein hewani dan omega-3.", 
+        pengolahan: "Dipepes", pengolahanWrong: ["Direbus", "Disantan"] },
+    bihun: { id: 'bihun', name: "Soun Bumbu Kecap", icon: "\u{1F35C}", nutrien: "Karbohidrat", fungsi: "energi", source: "serpang",
+        desc: "Soun dengan kecap, tambahan sumber energi.", 
+        pengolahan: "Ditumis", pengolahanWrong: ["Dikukus", "Dipepes"] },
+    telur: { id: 'telur', name: "Telur Asin Masir", icon: "\u{1F95A}", nutrien: "Protein", fungsi: "sel", source: "serpang",
+        desc: "Kaya protein dan lemak.", 
+        pengolahan: "Diasin & Direbus", pengolahanWrong: ["Digoreng", "Dibakar"] },
+    empal: { id: 'empal', name: "Dendeng Daging Sapi", icon: "\u{1F969}", nutrien: "Protein", fungsi: "sel", source: "serpang",
+        desc: "Protein tinggi dan zat besi heme.", 
+        pengolahan: "Didendeng/Goreng", pengolahanWrong: ["Dipepes", "Direbus"] },
+    serundeng: { id: 'serundeng', name: "Serundeng Kelapa", icon: "\u{1F965}", nutrien: "Lemak", fungsi: "cadangan", source: "serpang",
+        desc: "Kelapa sangrai sumber lemak nabati dan serat.", 
+        pengolahan: "Disangrai", pengolahanWrong: ["Dipepes", "Direbus"] },
+    kerang: { id: 'kerang', name: "Sambal Goreng Kerang", icon: "\u{1F9AA}", nutrien: "Protein", fungsi: "sel", source: "serpang",
+        desc: "Protein hewani berukuran kecil.", 
+        pengolahan: "Digoreng bumbu", pengolahanWrong: ["Dikukus", "Diasin"] },
+    peyek: { id: 'peyek', name: "Kerupuk/Peyek", icon: "\u{1F95C}", nutrien: "Karbohidrat", fungsi: "energi", source: "serpang",
+        desc: "Karbohidrat dari tepung, lemak dari minyak.", 
+        pengolahan: "Digoreng", pengolahanWrong: ["Dipepes", "Direbus"] },
+    sambal: { id: 'sambal', name: "Sambal Terasi", icon: "\u{1F336}\u{FE0F}", nutrien: "Mineral", fungsi: "tulang", source: "serpang",
+        desc: "Pelengkap rasa, sedikit vitamin/mineral dari cabai.", 
+        pengolahan: "Diulek", pengolahanWrong: ["Digoreng", "Dipepes"] },
+    
+    // Pantry Misi 6
+    bayam: { id: 'bayam', name: "Sayur Bayam", icon: "\u{1F96C}", type: "sayur", nutrien: "Vitamin", msg: "Bayam sangat baik! Menambah vitamin, mineral, dan serat pengatur." },
+    pisang: { id: 'pisang', name: "Buah Pisang", icon: "\u{1F34C}", type: "buah", nutrien: "Vitamin", msg: "Pisang cocok sebagai pencuci mulut yang kaya kalium dan serat." },
+    air: { id: 'air', name: "Air Putih", icon: "\u{1F94B}", type: "air", nutrien: "Air", msg: "Air putih krusial untuk melarutkan semua zat gizi dalam tubuh." },
+    ayam: { id: 'ayam', name: "Ayam Goreng", icon: "\u{1F357}", type: "lauk", nutrien: "Protein", msg: "Nasi Serpang sudah kaya protein dan lemak, ayam goreng berpotensi membuat gizi menumpuk." },
+    mie: { id: 'mie', name: "Mie Instan", icon: "\u{1F35C}", type: "karbo", nutrien: "Karbohidrat", msg: "Nasi dan Soun sudah banyak karbohidrat. Hindari menambah karbohidrat lagi." }
+};
+
+const mapPins = [
+    { id: 'nasi', top: 40, left: 53 },
+    { id: 'ikan', top: 16, left: 38 },
+    { id: 'bihun', top: 19, left: 69 },
+    { id: 'telur', top: 33, left: 80 },
+    { id: 'empal', top: 56, left: 80 },
+    { id: 'serundeng', top: 75, left: 60 },
+    { id: 'kerang', top: 68, left: 35 },
+    { id: 'peyek', top: 54, left: 15 },
+    { id: 'sambal', top: 29, left: 18 }
+];
+
+const views = ['beranda','identitas','pangenalan','pretest','pretest-hasil','eksplorasi','misi1','misi2','misi3','misi4','misi5','misi6','misi7','misi8','posttest','posttest-hasil','remedial','paspor','teacher'];
+
+const app = {
+    currentView: 'beranda',
+    data: {
+        kelompok: '', kelas: '', peran: {}, 
+        discovered: [], highestIdx: 0, savedView: 'beranda',
+        misiProgress: { m1: false, m2: 0, m3: 0, m4: 0, m6: 0 },
+        misi3Score: 0, misi4Score: 0,
+        preTest: { answers: {}, score: 0, tp1: 0, tp2: 0, tp3: 0, done: false },
+        postTest: { answers: {}, score: 0, tp1: 0, tp2: 0, tp3: 0, done: false },
+        remedial: { tp1: null, tp2: null, tp3: null, completed: false },
+        torator: { mood: '', ref1: '', ref2: '' },
+        rekomendasi: '', alasan: ''
+    },
+    save: function() {
+        localStorage.setItem('pintarSerpangData', JSON.stringify(this.data));
+    },
+    load: function() { 
+        const d = localStorage.getItem('pintarSerpangData');
+        if(d) {
+            const parsed = JSON.parse(d);
+            this.data = Object.assign({}, this.data, parsed);
+            if(!this.data.discovered) this.data.discovered = [];
+            if(typeof this.data.highestIdx === 'undefined') this.data.highestIdx = 0;
+            if(!this.data.preTest) this.data.preTest = { answers: {}, score: 0, tp1: 0, tp2: 0, tp3: 0, done: false };
+            if(!this.data.postTest) this.data.postTest = { answers: {}, score: 0, tp1: 0, tp2: 0, tp3: 0, done: false };
+            if(!this.data.remedial) this.data.remedial = { tp1: null, tp2: null, tp3: null, completed: false };
+        }
+        
+        if(this.data.kelompok) {
+            document.getElementById('inputKelompok').value = this.data.kelompok;
+            document.getElementById('inputKelas').value = this.data.kelas;
+            if(this.data.peran.koordinator) document.getElementById('inputPeran1').value = this.data.peran.koordinator;
+            if(this.data.peran.pencatat) document.getElementById('inputPeran2').value = this.data.peran.pencatat;
+            if(this.data.peran.jurubicara) document.getElementById('inputPeran3').value = this.data.peran.jurubicara;
+            renderMapPins();
+            document.getElementById('userInfoBadge').innerText = this.data.kelompok;
+            document.getElementById('userInfoBadge').style.display = 'block';
+        }
+        
+        if(this.data.rekomendasi) document.getElementById('inputRekomendasi').value = this.data.rekomendasi;
+        if(this.data.alasan) document.getElementById('inputAlasan').value = this.data.alasan;
+        
+        // Restore tests if done
+        if(this.data.preTest.done && !document.getElementById('pre-score-total').innerHTML.includes(this.data.preTest.score)) {
+            updateTestResultUI('pre', this.data.preTest);
+        }
+        if(this.data.postTest.done && !document.getElementById('res-post-score').innerHTML.includes(this.data.postTest.score)) {
+            updateTestResultUI('post', this.data.postTest);
+        }
+        
+        // Restore View
+        if(this.data.savedView && this.data.savedView !== 'beranda' && this.data.savedView !== 'teacher') {
+            this.navigate(this.data.savedView);
+        } else {
+            this.updateProgress();
+        }
+    },
+    navigate: function(viewId) {
+        if(viewId === 'teacher') {
+            document.getElementById('passModal').classList.add('active');
+            document.getElementById('inputTeacherPin').value = '';
+            setTimeout(() => document.getElementById('inputTeacherPin').focus(), 100);
+            return;
+        }
+        
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        this.currentView = viewId;
+        window.scrollTo(0, 0);
+        
+        // Hooks
+        if(viewId === 'pretest' && !this.data.preTest.done) renderTest('pre');
+        if(viewId === 'posttest' && !this.data.postTest.done) renderTest('post');
+        if(viewId === 'paspor') generatePaspor();
+        
+        const idx = views.indexOf(viewId);
+        if(idx > this.data.highestIdx) this.data.highestIdx = idx;
+        if(viewId !== 'teacher') {
+            this.data.savedView = viewId;
+            this.save();
+        }
+        this.updateProgress();
+    },
+    updateProgress: function() {
+        const idx = views.indexOf(this.currentView);
+        const total = views.indexOf('paspor'); 
+        let perc = Math.min((idx / total) * 100, 100);
+        if(idx <= 0 || this.currentView === 'teacher') {
+            document.getElementById('progressBarContainer').style.display = 'none';
+        } else {
+            document.getElementById('progressBarContainer').style.display = 'block';
+            document.getElementById('progressFill').style.width = perc + '%';
+        }
+        
+        if(this.data.highestIdx >= views.indexOf('misi2')) document.getElementById('btnToMisi2').style.display = 'inline-block';
+        if(this.data.highestIdx >= views.indexOf('misi3')) document.getElementById('btnToMisi3').style.display = 'inline-block';
+        if(this.data.highestIdx >= views.indexOf('misi4')) document.getElementById('btnToMisi4').style.display = 'inline-block';
+        if(this.data.highestIdx >= views.indexOf('misi5')) document.getElementById('btnToMisi5').style.display = 'inline-block';
+        if(this.data.highestIdx >= views.indexOf('misi6')) document.getElementById('btnToMisi6').style.display = 'inline-block';
+        if(this.data.highestIdx >= views.indexOf('misi7')) document.getElementById('btnToMisi7').style.display = 'inline-block';
+    }
+};
+
+// ================= TEST SYSTEM (PRE & POST) =================
+function renderTest(type) {
+    const container = document.getElementById(`${type}test-container`);
+    if(container.children.length > 0) return;
+    
+    const qs = type === 'pre' ? preTestQs : postTestQs;
+    let html = '';
+    
+    qs.forEach((q, idx) => {
+        const savedAns = app.data[`${type}Test`].answers[q.id];
+        const isAnswered = typeof savedAns !== 'undefined';
+        
+        html += `<div class="test-question-card" id="qcard-${type}-${q.id}">
+            <div class="test-q-text">
+                <span id="qstatus-${type}-${q.id}" style="color:var(--accent-green); margin-right:5px; font-weight:bold;">${isAnswered ? '&#x2714;' : ''}</span>
+                ${idx+1}. ${q.q}
+            </div>`;
+        q.opts.forEach((opt, oIdx) => {
+            const selectedClass = (isAnswered && savedAns === oIdx) ? 'selected' : '';
+            html += `<div class="quiz-option ${selectedClass}" onclick="selectOption('${type}', '${q.id}', ${oIdx}, this)">${String.fromCharCode(65+oIdx)}. ${opt}</div>`;
+        });
+        html += `</div>`;
+    });
+    container.innerHTML = html;
+}
+
+function selectOption(type, qId, oIdx, el) {
+    const card = document.getElementById(`qcard-${type}-${qId}`);
+    card.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    
+    // Add checkmark to question title
+    document.getElementById(`qstatus-${type}-${qId}`).innerHTML = '&#x2714;';
+    
+    app.data[`${type}Test`].answers[qId] = oIdx;
+    app.save();
+}
+
+function submitTest(type) {
+    const qs = type === 'pre' ? preTestQs : postTestQs;
+    const testData = app.data[`${type}Test`];
+    
+    if(Object.keys(testData.answers).length < 12) {
+        alert("Harap jawab semua 12 pertanyaan terlebih dahulu!");
+        return;
+    }
+    
+    let tp1=0, tp2=0, tp3=0;
+    qs.forEach(q => {
+        if(testData.answers[q.id] === q.ans) {
+            if(q.tp === 1) tp1++;
+            else if(q.tp === 2) tp2++;
+            else if(q.tp === 3) tp3++;
+        }
+    });
+    
+    testData.tp1 = tp1;
+    testData.tp2 = tp2;
+    testData.tp3 = tp3;
+    testData.score = Math.round(((tp1+tp2+tp3)/12) * 100);
+    testData.done = true;
+    app.save();
+    
+    updateTestResultUI(type, testData);
+    app.navigate(`${type}test-hasil`);
+}
+
+function updateTestResultUI(type, data) {
+    if(type === 'pre') {
+        document.getElementById('pre-score-total').innerText = Math.round((data.score/100)*12) + "/12";
+        document.getElementById('pre-bar-tp1').style.width = (data.tp1/4)*100 + "%";
+        document.getElementById('pre-txt-tp1').innerText = data.tp1 + "/4";
+        document.getElementById('pre-bar-tp2').style.width = (data.tp2/4)*100 + "%";
+        document.getElementById('pre-txt-tp2').innerText = data.tp2 + "/4";
+        document.getElementById('pre-bar-tp3').style.width = (data.tp3/4)*100 + "%";
+        document.getElementById('pre-txt-tp3').innerText = data.tp3 + "/4";
+    } else {
+        document.getElementById('res-pre-score').innerText = app.data.preTest.score + "%";
+        document.getElementById('res-post-score').innerText = data.score + "%";
+        
+        const diff = data.score - app.data.preTest.score;
+        let diffTxt = diff >= 0 ? `meningkat ${diff} poin persentase` : `menurun ${Math.abs(diff)} poin persentase`;
+        if(diff === 0) diffTxt = "tetap sama";
+        document.getElementById('res-diff').innerText = `Skormu ${diffTxt}.`;
+        
+        document.getElementById('res-tp1-text').innerText = `Pre: ${app.data.preTest.tp1}/4 | Post: ${data.tp1}/4`;
+        document.getElementById('res-tp2-text').innerText = `Pre: ${app.data.preTest.tp2}/4 | Post: ${data.tp2}/4`;
+        document.getElementById('res-tp3-text').innerText = `Pre: ${app.data.preTest.tp3}/4 | Post: ${data.tp3}/4`;
+    }
+}
+
+// ================= REMEDIAL ADAPTIF =================
+function checkRemedial() {
+    const p = app.data.postTest;
+    app.data.remedial.tp1 = p.tp1 <= 2 ? false : true;
+    app.data.remedial.tp2 = p.tp2 <= 2 ? false : true;
+    app.data.remedial.tp3 = p.tp3 <= 2 ? false : true;
+    
+    let needsRem = (!app.data.remedial.tp1 || !app.data.remedial.tp2 || !app.data.remedial.tp3);
+    
+    if(needsRem && !app.data.remedial.completed) {
+        document.getElementById('rem-tp1').classList.toggle('active', !app.data.remedial.tp1);
+        document.getElementById('rem-tp2').classList.toggle('active', !app.data.remedial.tp2);
+        document.getElementById('rem-tp3').classList.toggle('active', !app.data.remedial.tp3);
+        document.getElementById('btn-finish-remedial').style.display = 'none';
+        app.navigate('remedial');
+    } else {
+        app.navigate('paspor');
+    }
+}
+
+function checkRem(tp, isCorrect, msg) {
+    if(isCorrect) {
+        showModal("Hebat!", msg, true);
+        app.data.remedial[tp] = true;
+        document.getElementById(`rem-${tp}`).classList.remove('active');
+        
+        if(app.data.remedial.tp1 && app.data.remedial.tp2 && app.data.remedial.tp3) {
+            app.data.remedial.completed = true;
+            document.getElementById('btn-finish-remedial').style.display = 'inline-block';
+            showModal("Selesai!", "Kamu telah menyelesaikan semua Misi Penguatan. Silakan lanjut ke Paspor!", true);
+            app.save();
+        }
+    } else {
+        showModal("Coba Lagi", msg, false);
+    }
+}
+
+// ================= IDENTITAS & EKSPLORASI =================
+function saveIdentitas() {
+    const k = document.getElementById('inputKelompok').value;
+    if(!k) { alert("Nama kelompok wajib diisi!"); return; }
+    app.data.kelompok = k;
+    app.data.kelas = document.getElementById('inputKelas').value;
+    app.data.peran = {
+        koordinator: document.getElementById('inputPeran1').value,
+        pencatat: document.getElementById('inputPeran2').value,
+        jurubicara: document.getElementById('inputPeran3').value
+    };
+    document.getElementById('userInfoBadge').innerText = k;
+    document.getElementById('userInfoBadge').style.display = 'block';
+    app.save();
+    app.navigate('pangenalan');
+}
+
+function renderMapPins() {
+    const mc = document.getElementById('mapContainer');
+    let html = '<img src="WhatsApp%20Image%202026-09-14%20at%2011.36.47.jpeg" alt="Nasi Serpang">';
+    mapPins.forEach((p, idx) => {
+        const isV = app.data.discovered.includes(p.id);
+        html += `<div class="hotspot" style="top:${p.top}%; left:${p.left}%;" onclick="discoverPin('${p.id}')">
+            <div class="pin ${isV ? 'visited' : ''}" id="pin-${p.id}">${idx+1}</div>
+        </div>`;
+    });
+    mc.innerHTML = html;
+    
+    const c = app.data.discovered.length;
+    document.getElementById('discoveryTracker').innerText = `Petunjuk Ditemukan: ${c} / 9`;
+    if(c === 9) {
+        document.getElementById('eksplorasiAction').style.display = 'flex';
+        document.getElementById('discoveryTracker').innerHTML = 'Eksplorasi Selesai! &#x2705;';
+        document.getElementById('discoveryTracker').style.background = 'rgba(90,143,92,0.3)';
+    }
+}
+
+function discoverPin(id) {
+    if(!app.data.discovered.includes(id)) {
+        app.data.discovered.push(id);
+        app.save();
+    }
+    const d = foodData[id];
+    showModal(`Komponen Ditemukan: ${d.name} ${d.icon}`, `Deskripsi: ${d.desc}\nCara Pengolahan Asli: ${d.pengolahan}`, true);
+    renderMapPins();
+}
+// ================= MISI 1 =================
+function renderMisi1() {
+    const grid = document.getElementById('misi1Grid');
+    if(grid.children.length > 0) return;
+    const items = [...Object.keys(foodData).filter(k=>foodData[k].source==='serpang'), 'ayam', 'mie', 'pisang'].sort(()=>Math.random()-0.5);
+    let html = '';
+    items.forEach(k => {
+        html += `<div class="match-item m1-item" data-id="${k}" onclick="m1Select(this)">${foodData[k].icon} ${foodData[k].name}</div>`;
+    });
+    grid.innerHTML = html;
+}
+
+function m1Select(el) { el.classList.toggle('selected'); }
+
+function checkMisi1() {
+    const selected = Array.from(document.querySelectorAll('.m1-item.selected')).map(el => el.getAttribute('data-id'));
+    if(selected.length !== 9) {
+        showModal("Belum Tepat", "Pilih tepat 9 komponen Nasi Serpang yang asli berdasarkan eksplorasimu!", false);
+        return;
+    }
+    const wrong = selected.filter(id => foodData[id].source !== 'serpang');
+    if(wrong.length > 0) {
+        showModal("Ada yang kurang tepat", `Sepertinya ada ${wrong.length} bahan yang bukan komponen asli Nasi Serpang.`, false);
+    } else {
+        showModal("Luar Biasa!", "Kalian berhasil mengidentifikasi semua komponen asli Nasi Serpang.", true);
+        document.getElementById('btnToMisi2').style.display = 'inline-block';
+        app.data.misiProgress.m1 = true;
+        app.save();
+    }
+}
+
+// ================= MISI 2 =================
+let m2SelectedKomponen = null;
+function initMisi2() {
+    const grid = document.getElementById('misi2Grid');
+    if(grid.children.length > 0) return;
+    const comps = ['nasi', 'ikan', 'bihun', 'telur', 'empal', 'serundeng', 'kerang', 'peyek', 'sambal'];
+    
+    let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+    comps.forEach(c => html += `<div class="match-item m2-k" data-id="${c}" onclick="m2SelectK(this, '${c}')">${foodData[c].icon} ${foodData[c].name}</div>`);
+    html += '</div><div style="display:flex; flex-direction:column; gap:10px;">';
+    let methods = comps.map(c => ({id:c, t:foodData[c].pengolahan})).sort(()=>Math.random()-0.5);
+    methods.forEach(m => html += `<div class="match-item m2-p" data-id="${m.id}" onclick="m2SelectP(this, '${m.id}')">${m.t}</div>`);
+    html += '</div>';
+    grid.innerHTML = html;
+}
+
+function m2SelectK(el, id) {
+    if(el.classList.contains('matched')) return;
+    document.querySelectorAll('.m2-k').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    m2SelectedKomponen = id;
+}
+
+function m2SelectP(el, id) {
+    if(el.classList.contains('matched') || !m2SelectedKomponen) return;
+    if(id === m2SelectedKomponen) {
+        el.classList.add('matched');
+        document.querySelector(`.m2-k[data-id="${id}"]`).classList.add('matched');
+        document.querySelector(`.m2-k[data-id="${id}"]`).classList.remove('selected');
+        app.data.misiProgress.m2++;
+        m2SelectedKomponen = null;
+        if(app.data.misiProgress.m2 === 9) {
+            document.getElementById('btnToMisi3').style.display = 'inline-block';
+            showModal("Berhasil!", "Semua teknik pengolahan berhasil dipasangkan!", true);
+            app.save();
+        } else {
+            showModal("Tepat!", "Pasangan yang cocok. Ayo selesaikan sisanya!", true);
+        }
+    } else {
+        showModal("Kurang Tepat", "Coba ingat lagi bagaimana komponen ini dibuat.", false);
+    }
+}
+
+// ================= MISI 3 =================
+let draggedItemMisi3 = null;
+function initMisi3() {
+    const s = document.getElementById('misi3Source');
+    if(s.children.length > 0) return;
+    mapPins.forEach(p => {
+        s.innerHTML += `<div class="draggable-item" draggable="true" id="m3-${p.id}" data-id="${p.id}" ondragstart="m3DragStart(event)" onclick="m3ClickSelect(this)">${foodData[p.id].icon} ${foodData[p.id].name}</div>`;
+    });
+}
+function m3DragStart(e) { draggedItemMisi3 = e.target.id; }
+function allowDrop(e) { e.preventDefault(); }
+function m3Drop(e, targetId) {
+    e.preventDefault();
+    if(!draggedItemMisi3) return;
+    const el = document.getElementById(draggedItemMisi3);
+    if(targetId === 'source') { document.getElementById('misi3Source').appendChild(el); return; }
+    document.getElementById(`t-${targetId}`).appendChild(el);
+}
+function m3ClickSelect(el) {
+    if(el.classList.contains('selected')) {
+        el.classList.remove('selected');
+        draggedItemMisi3 = null;
+    } else {
+        document.querySelectorAll('.draggable-item').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+        draggedItemMisi3 = el.id;
+    }
+}
+function m3ClickTarget(targetId) {
+    if(!draggedItemMisi3) return;
+    const el = document.getElementById(draggedItemMisi3);
+    document.getElementById(`t-${targetId}`).appendChild(el);
+    el.classList.remove('selected');
+    draggedItemMisi3 = null;
+}
+function checkMisi3() {
+    let score = 0; let total = 9;
+    mapPins.forEach(p => {
+        const el = document.getElementById(`m3-${p.id}`);
+        const parentId = el.parentElement.id;
+        const target = foodData[p.id].nutrien.substring(0,3).toLowerCase();
+        if(parentId === `t-${target}`) {
+            score++; el.classList.add('correct'); el.classList.remove('wrong');
+        } else if(parentId !== 'misi3Source') {
+            el.classList.add('wrong'); el.classList.remove('correct');
+        }
+    });
+    if(score === total) {
+        document.getElementById('btnToMisi4').style.display = 'inline-block';
+        showModal("Luar Biasa!", "Semua komponen berhasil diklasifikasikan dengan benar!", true);
+        app.save();
+    } else {
+        showModal("Ada yang keliru", "Cek kembali item yang berwarna merah.", false);
+    }
+}
+
+// ================= MISI 4 =================
+let m4SelectedNut = null;
+function initMisi4() {
+    const tb = document.getElementById('misi4Table');
+    if(tb.children.length > 0) return;
+    
+    const nuts = ["Karbohidrat", "Protein", "Lemak", "Vitamin", "Mineral", "Serat", "Air"];
+    let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+    nuts.forEach(n => html += `<div class="match-item m4-n" data-id="${n}" onclick="m4SelectN(this, '${n}')">${n}</div>`);
+    html += '</div><div style="display:flex; flex-direction:column; gap:10px;">';
+    
+    const funcs = [
+        {id:'Karbohidrat', t:'Energi utama tubuh (Bahan bakar)'},
+        {id:'Protein', t:'Pertumbuhan & perbaikan sel tubuh (Pembangun)'},
+        {id:'Lemak', t:'Cadangan energi & pelindung organ (Bantalan)'},
+        {id:'Vitamin', t:'Pengatur metabolisme & penjaga sistem imun'},
+        {id:'Mineral', t:'Pembentuk tulang & keseimbangan cairan'},
+        {id:'Serat', t:'Melancarkan proses pencernaan makanan'},
+        {id:'Air', t:'Melarutkan zat gizi & mengatur suhu tubuh'}
+    ].sort(()=>Math.random()-0.5);
+    funcs.forEach(f => html += `<div class="match-item m4-f" data-id="${f.id}" onclick="m4SelectF(this, '${f.id}')">${f.t}</div>`);
+    html += '</div>';
+    tb.innerHTML = html;
+}
+
+function m4SelectN(el, id) {
+    if(el.classList.contains('matched')) return;
+    document.querySelectorAll('.m4-n').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    m4SelectedNut = id;
+}
+
+function m4SelectF(el, id) {
+    if(el.classList.contains('matched') || !m4SelectedNut) return;
+    if(id === m4SelectedNut) {
+        el.classList.add('matched');
+        document.querySelector(`.m4-n[data-id="${id}"]`).classList.add('matched');
+        document.querySelector(`.m4-n[data-id="${id}"]`).classList.remove('selected');
+        app.data.misiProgress.m4++;
+        m4SelectedNut = null;
+        if(app.data.misiProgress.m4 === 7) {
+            document.getElementById('btnToMisi5').style.display = 'inline-block';
+            showModal("Benar Sekali!", "Kalian sudah memahami fungsi dasar setiap zat gizi.", true);
+            app.save();
+        } else {
+            showModal("Tepat!", "Fungsi zat gizi berhasil dipasangkan. Lanjutkan!", true);
+        }
+    } else {
+        showModal("Kurang Tepat", "Coba baca kembali modul bahan ajar tentang fungsi zat gizi.", false);
+    }
+}
+// ================= MISI 5 =================
+let m5Selected = [];
+function renderMisi5() {
+    const b = document.getElementById('analyzerBars');
+    const bts = document.getElementById('misi5Checklist');
+    if(b.children.length > 0) return;
+    
+    const prof = { Karbohidrat: 80, Protein: 90, Lemak: 60, Vitamin: 10, Mineral: 20, Serat: 10, Air: 10 };
+    let bHtml = ''; let btHtml = '';
+    for(let k in prof) {
+        bHtml += `<div class="chart-row">
+            <div class="chart-label"><span>${k}</span><span>${prof[k]>50 ? 'Tinggi' : 'Rendah'}</span></div>
+            <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${prof[k]}%; background:${prof[k]>50?'var(--accent-green)':'var(--accent-warm)'};"></div></div>
+        </div>`;
+        btHtml += `<div class="match-item m5-chk" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; padding:8px 15px; border-radius:20px; transition:0.3s;" onclick="toggleM5('${k}', this)">
+            <div class="chk-box" style="width:16px; height:16px; border:2px solid rgba(255,255,255,0.5); border-radius:4px; display:inline-block; transition:0.2s;"></div> ${k}
+        </div>`;
+    }
+    b.innerHTML = bHtml;
+    bts.innerHTML = btHtml;
+}
+
+function toggleM5(k, el) {
+    const idx = m5Selected.indexOf(k);
+    const box = el.querySelector('.chk-box');
+    if(idx > -1) {
+        m5Selected.splice(idx, 1);
+        el.style.borderColor = "rgba(255,255,255,0.1)";
+        el.style.background = "var(--bg-card)";
+        box.style.background = "transparent";
+        box.style.borderColor = "rgba(255,255,255,0.5)";
+    } else {
+        m5Selected.push(k);
+        el.style.borderColor = "var(--accent-gold)";
+        el.style.background = "rgba(212,168,67,0.2)";
+        box.style.background = "var(--accent-gold)";
+        box.style.borderColor = "var(--accent-gold)";
+    }
+}
+
+function verifyMisi5() {
+    const correctAnswers = ['Vitamin', 'Mineral', 'Serat', 'Air'];
+    const isCorrect = m5Selected.length === correctAnswers.length && m5Selected.every(v => correctAnswers.includes(v));
+    
+    if(isCorrect) {
+        showModal("Analisis Tepat!", "Benar sekali! Nasi Serpang sangat minim zat pengatur (Vitamin, Mineral, Serat, Air). Kesimpulan ini membuktikan pentingnya menambahkan menu pelengkap.", true);
+        document.getElementById('btnToMisi6').style.display = 'inline-block';
+        app.save();
+    } else {
+        showModal("Belum Tepat", "Perhatikan kembali grafik di atas! Centang SEMUA (empat) zat gizi yang batangnya berwarna merah muda (kondisi Rendah/Defisit).", false);
+    }
+}
+
+// ================= MISI 6 =================
+let m6Items = [];
+function initMisi6() {
+    const pantry = document.getElementById('misi6Pantry');
+    if(pantry.children.length > 0) return;
+    
+    let html = '';
+    for(let k in foodData) {
+        if(foodData[k].source !== 'serpang') {
+            html += `<div class="match-item m6-i" data-id="${k}" onclick="m6Select(this, '${k}')">${foodData[k].icon} <br>${foodData[k].name}</div>`;
+        }
+    }
+    pantry.innerHTML = html;
+}
+
+function m6Select(el, id) {
+    if(m6Items.includes(id)) {
+        m6Items = m6Items.filter(i => i !== id);
+        el.style.borderColor = "rgba(255,255,255,0.1)";
+        el.style.background = "var(--bg-card)";
+    } else {
+        if(m6Items.length >= 2) return;
+        m6Items.push(id);
+        el.style.borderColor = "var(--accent-green)";
+        el.style.background = "rgba(90,143,92,0.2)";
+    }
+    
+    if(m6Items.length === 2) {
+        const valid = ['bayam', 'pisang', 'air'];
+        if(m6Items.every(i => valid.includes(i))) {
+            document.getElementById('m6Status').innerHTML = "<strong>Sempurna!</strong> Kombinasi pelengkapmu kaya akan Vitamin, Mineral, Serat, dan Air yang sangat dibutuhkan tubuh.";
+            document.getElementById('m6Status').className = "alert alert-info";
+            document.getElementById('m6Status').style.background = "rgba(90,143,92,0.2)";
+            document.getElementById('m6Status').style.color = "var(--text-light)";
+            document.getElementById('btnToMisi7').style.display = 'inline-block';
+            app.data.rekomendasi = m6Items.map(i => foodData[i].name).join(" dan ");
+            document.getElementById('inputRekomendasi').value = app.data.rekomendasi;
+            app.save();
+        } else {
+            const badItem = m6Items.find(i => !valid.includes(i));
+            document.getElementById('m6Status').innerHTML = "<strong>Kurang Tepat.</strong> " + foodData[badItem].msg + " Kita harus mencari sumber zat pengatur (Vitamin/Mineral/Serat/Air).";
+            document.getElementById('m6Status').className = "alert alert-info";
+            document.getElementById('m6Status').style.background = "rgba(199,91,57,0.2)";
+            document.getElementById('m6Status').style.color = "#ffb39e";
+        }
+    } else {
+        document.getElementById('m6Status').innerHTML = "Pilih 2 bahan pelengkap.";
+        document.getElementById('m6Status').className = "alert";
+        document.getElementById('m6Status').style.background = "rgba(255,255,255,0.05)";
+        document.getElementById('m6Status').style.color = "var(--text-light)";
+    }
+}
+
+// ================= MISI 8 (Tor-ator) =================
+let m8Emoji = '';
+function selectEmoji(el, mood) {
+    document.querySelectorAll('.emoji-btn').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    m8Emoji = mood;
+}
+
+function finishTorator() {
+    if(!m8Emoji) { alert("Pilih perasaanmu dulu!"); return; }
+    if(document.getElementById('inputRefleksi1').value === '') { alert("Isi refleksimu!"); return; }
+    app.data.torator.mood = m8Emoji;
+    app.data.torator.ref1 = document.getElementById('inputRefleksi1').value;
+    app.data.torator.ref2 = document.getElementById('inputRefleksi2').value;
+    app.data.alasan = document.getElementById('inputAlasan').value;
+    app.save();
+    app.navigate('posttest');
+}
+
+// ================= PASPOR & SPREADSHEET =================
+function generatePaspor() {
+    // 1. Identity
+    document.getElementById('dlp-kelompok').innerText = app.data.kelompok || "Belum ada data";
+    document.getElementById('dlp-kelas').innerText = app.data.kelas || "Belum ada data";
+    
+    if(app.data.kelompok) {
+        let idStr = "AGM-" + (app.data.kelompok.length * 3 + app.data.kelas.length) + Math.floor(Math.random()*1000);
+        document.getElementById('dlp-id').innerText = idStr;
+    } else {
+        document.getElementById('dlp-id').innerText = "-";
+    }
+
+    let anggotaArr = [];
+    if(app.data.peran.koordinator) anggotaArr.push(`<strong>Koordinator:</strong> ${app.data.peran.koordinator}`);
+    if(app.data.peran.pencatat) anggotaArr.push(`<strong>Pencatat:</strong> ${app.data.peran.pencatat}`);
+    if(app.data.peran.jurubicara) anggotaArr.push(`<strong>Jurubicara:</strong> ${app.data.peran.jurubicara}`);
+    document.getElementById('dlp-anggota').innerHTML = anggotaArr.length > 0 ? anggotaArr.join(' &nbsp; | &nbsp; ') : "-";
+
+    // 2. Journey (Timeline)
+    const steps = ['Pangenalan', 'Eksplorasi', 'Misi 1', 'Misi 2', 'Misi 3', 'Misi 4', 'Misi 5', 'Misi 6', 'Lombhung', 'Tor-ator'];
+    let timelineHtml = '';
+    steps.forEach((s, i) => {
+        // Assume completed if they reached this view
+        timelineHtml += `
+            <div class="dlp-step completed" style="animation-delay: ${i*0.1}s">
+                <div class="dlp-step-icon">&#x2714;</div>
+                <div class="dlp-step-label">${s}</div>
+            </div>
+        `;
+    });
+    document.getElementById('dlp-timeline-container').innerHTML = timelineHtml;
+
+    // 3. Badges (Data-driven)
+    const b1 = app.data.discovered && app.data.discovered.length === 9;
+    const b2 = app.data.highestIdx >= 3 || app.data.preTest.done; 
+    const b3 = app.data.highestIdx >= 4 || app.data.preTest.done; 
+    const b4 = app.data.highestIdx >= 5 || app.data.preTest.done; 
+    const b5 = app.data.rekomendasi && app.data.rekomendasi !== '';
+    const b6 = app.data.alasan && app.data.alasan !== '';
+    const b7 = app.data.torator && app.data.torator.ref1 !== '';
+    
+    document.getElementById('badge-1').className = b1 ? 'dlp-badge unlocked' : 'dlp-badge';
+    document.getElementById('badge-2').className = b2 ? 'dlp-badge unlocked' : 'dlp-badge';
+    document.getElementById('badge-3').className = b3 ? 'dlp-badge unlocked' : 'dlp-badge';
+    document.getElementById('badge-4').className = b4 ? 'dlp-badge unlocked' : 'dlp-badge';
+    document.getElementById('badge-5').className = b5 ? 'dlp-badge unlocked' : 'dlp-badge';
+    document.getElementById('badge-6').className = b6 ? 'dlp-badge unlocked' : 'dlp-badge';
+
+    // 4. Learning Snapshot (Pre vs Post)
+    const pre = app.data.preTest.score || 0;
+    const post = app.data.postTest.score || 0;
+    const diff = post - pre;
+    document.getElementById('dlp-pre-val').innerText = pre + "%";
+    document.getElementById('dlp-pre-bar').style.width = pre + "%";
+    document.getElementById('dlp-post-val').innerText = post + "%";
+    document.getElementById('dlp-post-bar').style.width = post + "%";
+    document.getElementById('dlp-diff').innerText = (diff >= 0 ? "+" : "") + diff + " Poin Pemahaman";
+
+    // 5. Profil Kompetensi (TP1-TP3)
+    const tp1Pct = (app.data.postTest.tp1 / 4) * 100 || 0;
+    const tp2Pct = (app.data.postTest.tp2 / 4) * 100 || 0;
+    const tp3Pct = (app.data.postTest.tp3 / 4) * 100 || 0;
+    document.getElementById('dlp-tp1-val').innerText = tp1Pct + "%";
+    document.getElementById('dlp-tp1-bar').style.width = tp1Pct + "%";
+    document.getElementById('dlp-tp2-val').innerText = tp2Pct + "%";
+    document.getElementById('dlp-tp2-bar').style.width = tp2Pct + "%";
+    document.getElementById('dlp-tp3-val').innerText = tp3Pct + "%";
+    document.getElementById('dlp-tp3-bar').style.width = tp3Pct + "%";
+
+    // 6. Menu Builder Result
+    let rekHtml = "Belum ada menu";
+    if(app.data.rekomendasi) {
+        rekHtml = "&#x2714; " + app.data.rekomendasi.split(' dan ').join('<br>&#x2714; ');
+    }
+    document.getElementById('dlp-menu-rekomendasi').innerHTML = rekHtml;
+    document.getElementById('dlp-menu-alasan').innerText = app.data.alasan || "Belum ada analisis.";
+
+    // 7. Reflection Cards
+    document.getElementById('dlp-ref1').innerText = (app.data.torator && app.data.torator.ref1) ? app.data.torator.ref1 : "Belum dikerjakan";
+    document.getElementById('dlp-ref2').innerText = (app.data.torator && app.data.torator.ref2) ? app.data.torator.ref2 : "Belum dikerjakan";
+
+    // Trigger stamp animation
+    setTimeout(() => {
+        document.getElementById('dlp-stamp').classList.add('show');
+    }, 500);
+
+    saveToLocalTeacherDB();
+}
+
+function saveToLocalTeacherDB() {
+    let records = [];
+    const rStr = localStorage.getItem('pintarSerpangRecords');
+    if(rStr) records = JSON.parse(rStr);
+    
+    const recId = app.data.kelompok + "_" + app.data.kelas;
+    const existsIndex = records.findIndex(r => r.id === recId);
+    
+    let anggotaStr = [];
+    if(app.data.peran.koordinator) anggotaStr.push(app.data.peran.koordinator);
+    if(app.data.peran.pencatat) anggotaStr.push(app.data.peran.pencatat);
+    if(app.data.peran.jurubicara) anggotaStr.push(app.data.peran.jurubicara);
+
+    const newRec = {
+        id: recId,
+        kelompok: app.data.kelompok,
+        kelas: app.data.kelas,
+        anggota: anggotaStr.join(", "),
+        preScore: app.data.preTest.score,
+        postScore: app.data.postTest.score,
+        tp1: app.data.postTest.tp1,
+        tp2: app.data.postTest.tp2,
+        tp3: app.data.postTest.tp3,
+        remedial: app.data.remedial.completed ? "Ya" : "Tidak"
+    };
+    
+    if(existsIndex >= 0) records[existsIndex] = newRec;
+    else records.push(newRec);
+    
+    localStorage.setItem('pintarSerpangRecords', JSON.stringify(records));
+}
+
+function submitToGoogleSheets() {
+    const btn = document.querySelector('#view-paspor .btn-green');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = "Menyimpan ke Server... &#x23F3;";
+    btn.disabled = true;
+
+    let anggotaStr = [];
+    if(app.data.peran.koordinator) anggotaStr.push(app.data.peran.koordinator);
+    if(app.data.peran.pencatat) anggotaStr.push(app.data.peran.pencatat);
+    if(app.data.peran.jurubicara) anggotaStr.push(app.data.peran.jurubicara);
+
+    const formBody = new URLSearchParams({
+        kelompok: app.data.kelompok || "-",
+        kelas: app.data.kelas || "-",
+        anggota: anggotaStr.join(", ") || "-",
+        rekomendasi: app.data.rekomendasi || "-",
+        alasan: app.data.alasan || "-",
+        refleksi: (app.data.torator && app.data.torator.ref1) ? app.data.torator.ref1 : "-",
+        mood: (app.data.torator && app.data.torator.mood) ? app.data.torator.mood : "-",
+        pre_score: app.data.preTest.score,
+        post_score: app.data.postTest.score,
+        remedial: app.data.remedial.completed ? "Ya" : "Tidak"
+    });
+
+    fetch("https://script.google.com/macros/s/AKfycbwDDNKKaLNbt24eDp7TE8t8EvuZcFIthTr2Gewe_vlzxfF7Dom79K95ILwiG_g61pY7/exec", {
+        method: 'POST',
+        body: formBody,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
+    .then(response => {
+        btn.innerHTML = "Berhasil Tersimpan &#x2705;";
+        showModal("Luar Biasa!", "Data Paspor Anda berhasil dikirim dan tersinkronisasi ke Server Guru.", true);
+    })
+    .catch(error => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        showModal("Koneksi Lambat", "Gagal mengirim ke server, namun jangan khawatir, data Anda tetap aman tersimpan di HP/Laptop ini.", false);
+    });
+}
+
+function printPaspor() {
+    window.print();
+}
+
+function exportToWA() {
+    const text = `*LAPORAN AHLI GIZI MUDA*%0A%0AKelompok: ${app.data.kelompok}%0AKelas: ${app.data.kelas}%0ASkor Pre-Test: ${app.data.preTest.score}%25%0ASkor Post-Test: ${app.data.postTest.score}%25%0A%0A*Catatan:* Silakan lampirkan gambar/PDF Paspor yang telah Anda unduh bersamaan dengan pesan ini.`;
+    
+    // Nomor WA Guru (harus berawalan 62)
+    const nomorWA = "6283833815342"; 
+    window.open(`https://api.whatsapp.com/send?phone=${nomorWA}&text=${text}`, '_blank');
+}
+
+function resetData() {
+    if(confirm("Yakin ingin mereset? Semua progress akan hilang.")) {
+        localStorage.removeItem('pintarSerpangData');
+        location.reload();
+    }
+}
+
+// ================= TEACHER MODE =================
+function closePassModal() {
+    document.getElementById('passModal').classList.remove('active');
+}
+
+function verifyTeacherPin() {
+    const pin = document.getElementById('inputTeacherPin').value;
+    if(pin === '1234') { // Default PIN
+        closePassModal();
+        showModal("Akses Diberikan", "Selamat datang di Dashboard Guru PINTAR Serpang 2.0!", true);
+        
+        // Actually navigate bypassing the prompt
+        app.currentView = 'teacher';
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-teacher').classList.add('active');
+        app.data.savedView = 'teacher';
+        document.getElementById('progressBarContainer').style.display = 'none';
+        
+        initTeacherMode();
+    } else {
+        document.getElementById('inputTeacherPin').value = '';
+        showModal("Akses Ditolak", "PIN yang Anda masukkan salah!", false);
+    }
+}
+
+function updateTeacherStats(total, sumPre, sumPost) {
+    document.getElementById('statCount').innerText = total;
+    if (total > 0) {
+        document.getElementById('statPre').innerText = Math.round(sumPre / total) + '%';
+        document.getElementById('statPost').innerText = Math.round(sumPost / total) + '%';
+    } else {
+        document.getElementById('statPre').innerText = '0%';
+        document.getElementById('statPost').innerText = '0%';
+    }
+}
+
+function initTeacherMode() {
+    const tb = document.getElementById('teacherTableBody');
+    let records = [];
+    const rStr = localStorage.getItem('pintarSerpangRecords');
+    if(rStr) records = JSON.parse(rStr);
+    
+    let html = '';
+    let sumPre = 0, sumPost = 0;
+
+    if(records.length === 0) {
+        html = `<tr><td colspan="10" style="text-align:center;">Belum ada data siswa di perangkat ini.</td></tr>`;
+        updateTeacherStats(0, 0, 0);
+    } else {
+        records.forEach(r => {
+            sumPre += (r.preScore || 0);
+            sumPost += (r.postScore || 0);
+            html += `<tr>
+                <td>${r.kelompok}</td>
+                <td style="font-size:0.8rem;">${r.anggota || '-'}</td>
+                <td>${r.kelas}</td>
+                <td>${r.preScore}%</td>
+                <td>${r.postScore}%</td>
+                <td>${r.tp1}/4</td>
+                <td>${r.tp2}/4</td>
+                <td>${r.tp3}/4</td>
+                <td>${r.remedial}</td>
+                <td>&#x1F4BE; Lokal</td>
+            </tr>`;
+        });
+        updateTeacherStats(records.length, sumPre, sumPost);
+    }
+    tb.innerHTML = html;
+    const sub = document.getElementById('dashboardSubtitle');
+    if(sub) sub.innerText = "Sumber Data: Penyimpanan Perangkat Lokal (Offline)";
+}
+
+function fetchOnlineData() {
+    const btn = document.getElementById('btnFetchOnline');
+    const tb = document.getElementById('teacherTableBody');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = "Menarik data... &#x23F3;";
+    btn.disabled = true;
+    
+    fetch("https://script.google.com/macros/s/AKfycbwDDNKKaLNbt24eDp7TE8t8EvuZcFIthTr2Gewe_vlzxfF7Dom79K95ILwiG_g61pY7/exec")
+    .then(res => res.json())
+    .then(data => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        if(data.status === 'success' && data.data && data.data.length > 1) {
+            const headers = data.data[0].map(h => h.toString().toLowerCase());
+            const idxKel = headers.findIndex(h => h.includes('kelompok'));
+            const idxAnggota = headers.findIndex(h => h.includes('anggota'));
+            const idxKelas = headers.findIndex(h => h.includes('kelas'));
+            const idxPre = headers.findIndex(h => h.includes('pre'));
+            const idxPost = headers.findIndex(h => h.includes('post'));
+            const idxRem = headers.findIndex(h => h.includes('remedial'));
+            
+            const rows = data.data.slice(1);
+            let html = '';
+            let validCount = 0;
+            let sumPre = 0;
+            let sumPost = 0;
+
+            rows.forEach(r => {
+                const kel = idxKel >= 0 ? r[idxKel] : '-';
+                const anggota = idxAnggota >= 0 ? r[idxAnggota] : '-';
+                const kls = idxKelas >= 0 ? r[idxKelas] : '-';
+                const pre = idxPre >= 0 ? r[idxPre] : '-';
+                const post = idxPost >= 0 ? r[idxPost] : '-';
+                const rem = idxRem >= 0 ? r[idxRem] : '-';
+                
+                if(kel !== '' && kel !== '-') {
+                    validCount++;
+                    sumPre += parseInt(pre) || 0;
+                    sumPost += parseInt(post) || 0;
+                }
+
+                html += `<tr>
+                    <td>${kel}</td>
+                    <td style="font-size:0.8rem;">${anggota}</td>
+                    <td>${kls}</td>
+                    <td>${pre}%</td>
+                    <td>${post}%</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>${rem}</td>
+                    <td style="color:var(--accent-green)">&#x1F310; Server</td>
+                </tr>`;
+            });
+            tb.innerHTML = html;
+            updateTeacherStats(validCount, sumPre, sumPost);
+            const sub = document.getElementById('dashboardSubtitle');
+            if(sub) sub.innerText = "Sumber Data: Server Google Sheets (Online)";
+        } else {
+            alert("Berhasil terhubung, tapi data di Server kosong.");
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        alert("Gagal menarik data dari server. Pastikan Google Apps Script Anda telah ditambahkan kode doGet() dan terkoneksi internet.");
+    });
+}
+
+function closeTeacherMode() {
+    app.navigate('beranda');
+}
+
+function exportCSV() {
+    const rStr = localStorage.getItem('pintarSerpangRecords');
+    if(!rStr) { alert("Tidak ada data untuk diekspor!"); return; }
+    const records = JSON.parse(rStr);
+    
+    let csv = "Kelompok,Kelas,Pre-Test(%),Post-Test(%),TP1,TP2,TP3,Remedial\n";
+    records.forEach(r => {
+        csv += `"${r.kelompok}","${r.kelas}",${r.preScore},${r.postScore},${r.tp1},${r.tp2},${r.tp3},"${r.remedial}"\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'rekap_nilai_pintarserpang.csv');
+    a.click();
+}
+
+function clearTeacherData() {
+    if(confirm("AWAS! Ini akan menghapus SELURUH rekap nilai siswa dari perangkat ini. Lanjutkan?")) {
+        localStorage.removeItem('pintarSerpangRecords');
+        initTeacherMode();
+    }
+}
+
+// ================= UTILS =================
+function showModal(title, msg, isSuccess = true) {
+    document.getElementById('modalTitle').innerText = title;
+    document.getElementById('modalMessage').innerText = msg;
+    const modal = document.querySelector('.modal');
+    const icon = document.getElementById('modalIcon');
+    
+    if (isSuccess) {
+        icon.innerHTML = '&#x2705;';
+        modal.classList.add('success');
+        modal.classList.remove('error');
+    } else {
+        icon.innerHTML = '&#x274C;';
+        modal.classList.add('error');
+        modal.classList.remove('success');
+    }
+    
+    document.getElementById('feedbackModal').classList.add('active');
+}
+function closeModal() { document.getElementById('feedbackModal').classList.remove('active'); }
+
+let bgm = null;
+let isBgmPlaying = false;
+function toggleBGM() {
+    if(!bgm) bgm = document.getElementById('bgMusic');
+    if(isBgmPlaying) { bgm.pause(); document.getElementById('bgmBtn').innerHTML = '&#x1F507;'; }
+    else { bgm.play(); document.getElementById('bgmBtn').innerHTML = '&#x1F50A;'; }
+    isBgmPlaying = !isBgmPlaying;
+}
+function speakText(text) {
+    if('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const ut = new SpeechSynthesisUtterance(text);
+        ut.lang = 'id-ID';
+        ut.pitch = 1.1; ut.rate = 0.9;
+        
+        if(isBgmPlaying && bgm) { bgm.volume = 0.2; ut.onend = function() { bgm.volume = 1.0; }; }
+        window.speechSynthesis.speak(ut);
+    }
+}
+
+window.onload = function() {
+    try {
+        app.load();
+        renderMapPins();
+        renderMisi1();
+        initMisi2();
+        initMisi3();
+        initMisi4();
+        renderMisi5();
+        initMisi6();
+    } catch (e) {
+        console.error(e);
+        alert("Kesalahan Sistem: " + e.message);
+    }
+};
+</script>
+</body>
+</html>
