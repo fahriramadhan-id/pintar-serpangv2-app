@@ -168,6 +168,53 @@
         
         .alert { padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; }
         .alert-info { background: rgba(74,144,226,0.1); border: 1px solid rgba(74,144,226,0.3); color: #8ab6e6; }
+        
+        @media (max-width: 768px) {
+            .title { font-size: 1.5rem; }
+            .subtitle { font-size: 0.95rem; }
+            .container { padding: 20px 15px; }
+            .score-number { font-size: 3rem; }
+            .match-grid { grid-template-columns: 1fr; }
+            .target-grid { grid-template-columns: 1fr; }
+            .btn { font-size: 0.9rem; padding: 10px 18px; }
+            .action-bar { flex-direction: column; align-items: center; }
+            .modal { max-width: 95%; }
+            .test-q-text { font-size: 1rem; }
+            .quiz-option { padding: 12px 15px; font-size: 0.9rem; }
+            header { padding: 10px 15px; }
+            .header-title { font-size: 1rem; }
+            .progress-container { max-width: 150px; margin: 0 10px; }
+            .pin { width: 24px; height: 24px; font-size: 0.75rem; }
+            .passport-card { padding: 20px; }
+            .passport-title { font-size: 1.4rem; }
+            .passport-stamp { width: 60px; height: 60px; font-size: 0.7rem; }
+            .dlp-id-card { grid-template-columns: 1fr; }
+            .dlp-badge-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+            .dlp-timeline { flex-wrap: wrap; gap: 10px; justify-content: center; }
+            .dlp-step { min-width: 60px; }
+            .emoji-btn { font-size: 1.5rem; }
+            .tts-bar { flex-wrap: wrap; }
+            #teacherStats { grid-template-columns: 1fr !important; }
+            .teacher-table, .styled-table { min-width: auto !important; }
+            .bgm-btn { width: 40px; height: 40px; font-size: 1rem; }
+            #misi1Grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important; }
+        }
+
+        @media (max-width: 480px) {
+            .title { font-size: 1.3rem; }
+            .container { padding: 15px 10px; }
+            .score-number { font-size: 2.5rem; }
+            .card { padding: 15px; }
+            .test-question-card { padding: 15px; }
+            .passport-card { padding: 15px; }
+            .passport-title { font-size: 1.2rem; }
+            header { flex-wrap: wrap; justify-content: center; gap: 5px; }
+        }
+
+        @media print {
+            header, .bgm-btn, .action-bar, .progress-container { display: none !important; }
+            body { background: white !important; color: black !important; }
+        }
     </style>
 </head>
 <body>
@@ -258,6 +305,24 @@
             <br>
             <div class="alert alert-info">
                 <strong>Sebelum memulai eksplorasi</strong>, mari kita cek pemahaman awal kalian tentang materi zat gizi melalui kuis singkat!
+            </div>
+        </div>
+        
+        <div class="card" style="margin-top: 20px; border: 1px solid rgba(212,168,67,0.2); background: linear-gradient(135deg, rgba(212,168,67,0.05), rgba(0,0,0,0));">
+            <h3 class="serif" style="color:var(--accent-gold); margin-bottom:15px; text-align:center;">&#x1F3AF; Tujuan Pembelajaran</h3>
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <div style="display:flex; align-items:flex-start; gap:12px;">
+                    <div style="min-width:55px; padding:5px 8px; background:rgba(74,144,226,0.15); border:1px solid rgba(74,144,226,0.3); border-radius:8px; text-align:center; font-weight:bold; color:var(--accent-blue); font-size:0.8rem;">TP 1</div>
+                    <div style="font-size:0.9rem; line-height:1.5;">Peserta didik mampu <strong>mengidentifikasi</strong> komponen penyusun dan kandungan nutrien pada menu Nasi Serpang sebagai makanan khas Kemaduraan melalui eksplorasi visual dan interaktif.</div>
+                </div>
+                <div style="display:flex; align-items:flex-start; gap:12px;">
+                    <div style="min-width:55px; padding:5px 8px; background:rgba(90,143,92,0.15); border:1px solid rgba(90,143,92,0.3); border-radius:8px; text-align:center; font-weight:bold; color:var(--accent-green); font-size:0.8rem;">TP 2</div>
+                    <div style="font-size:0.9rem; line-height:1.5;">Peserta didik mampu <strong>menjelaskan fungsi</strong> masing-masing nutrien (karbohidrat, protein, lemak, vitamin, mineral, serat, dan air) bagi tubuh berdasarkan hasil analisis komponen Nasi Serpang.</div>
+                </div>
+                <div style="display:flex; align-items:flex-start; gap:12px;">
+                    <div style="min-width:55px; padding:5px 8px; background:rgba(199,91,57,0.15); border:1px solid rgba(199,91,57,0.3); border-radius:8px; text-align:center; font-weight:bold; color:var(--accent-warm); font-size:0.8rem;">TP 3</div>
+                    <div style="font-size:0.9rem; line-height:1.5;">Peserta didik mampu <strong>menganalisis keseimbangan gizi</strong> menu Nasi Serpang dan merekomendasikan penyempurnaan menu berdasarkan prinsip gizi seimbang.</div>
+                </div>
             </div>
         </div>
         
